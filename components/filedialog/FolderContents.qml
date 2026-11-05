@@ -1,5 +1,7 @@
 pragma ComponentBehavior: Bound
 
+// Obsah složky jako seznam (Dolphin „Details“): ikona | jméno | typ | velikost.
+
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -19,6 +21,32 @@ Item {
 
     required property var dialog
     readonly property FileEntry currentItem: view.currentItem as FileEntry
+
+    readonly property real typeWidth: 150
+    readonly property real sizeWidth: 90
+
+    function formatSize(bytes: real): string {
+        const units = ["B", "KiB", "MiB", "GiB", "TiB"];
+        let i = 0;
+        while (bytes >= 1024 && i < units.length - 1) {
+            bytes /= 1024;
+            i++;
+        }
+        return `${i === 0 ? bytes : bytes.toFixed(1)} ${units[i]}`;
+    }
+
+    function typeOf(file: FileSystemEntry): string {
+        if (file.isDir)
+            return Tr.tr("Folder");
+        return file.suffix ? file.suffix.toUpperCase() : file.mimeType;
+    }
+
+    function open(file: FileSystemEntry): void {
+        if (file.isDir)
+            dialog.cwd.push(file.name);
+        else if (dialog.selectionValid)
+            dialog.accepted(file.path);
+    }
 
     StyledRect {
         anchors.fill: parent
@@ -43,6 +71,55 @@ Item {
             anchors.margins: Tokens.padding.extraSmall
             radius: Tokens.rounding.medium
         }
+    }
+
+    // Hlavička sloupců
+    RowLayout {
+        id: columns
+
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.margins: Tokens.padding.extraSmall + Tokens.padding.medium
+        anchors.leftMargin: Tokens.padding.extraSmall + Tokens.padding.large
+        anchors.rightMargin: Tokens.padding.extraSmall + Tokens.padding.large
+        spacing: Tokens.spacing.medium
+
+        StyledText {
+            Layout.fillWidth: true
+            Layout.leftMargin: 22 + Tokens.spacing.medium
+            text: Tr.tr("Name")
+            color: Colours.palette.m3onSurfaceVariant
+            font: Tokens.font.body.builders.small.weight(Font.Bold).build()
+        }
+
+        StyledText {
+            Layout.preferredWidth: root.typeWidth
+            text: Tr.tr("Type")
+            color: Colours.palette.m3onSurfaceVariant
+            font: Tokens.font.body.builders.small.weight(Font.Bold).build()
+        }
+
+        StyledText {
+            Layout.preferredWidth: root.sizeWidth
+            horizontalAlignment: Text.AlignRight
+            text: Tr.tr("Size")
+            color: Colours.palette.m3onSurfaceVariant
+            font: Tokens.font.body.builders.small.weight(Font.Bold).build()
+        }
+    }
+
+    Rectangle {
+        id: divider
+
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: columns.bottom
+        anchors.topMargin: Tokens.spacing.small
+        anchors.leftMargin: Tokens.padding.large
+        anchors.rightMargin: Tokens.padding.large
+        implicitHeight: 1
+        color: Colours.palette.m3outlineVariant
     }
 
     Loader {
@@ -74,27 +151,34 @@ Item {
         }
     }
 
-    GridView {
+    ListView {
         id: view
 
-        anchors.fill: parent
-        anchors.margins: Tokens.padding.extraSmall + Tokens.padding.medium
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: divider.bottom
+        anchors.bottom: parent.bottom
+        anchors.margins: Tokens.padding.extraSmall + Tokens.padding.small
+        anchors.topMargin: Tokens.spacing.small
 
-        cellWidth: Sizes.itemWidth + Tokens.spacing.small
-        cellHeight: Sizes.itemWidth + Tokens.spacing.large + Tokens.padding.medium * 2 + 1
-
+        spacing: 1
         clip: true
         focus: true
         currentIndex: -1
-        Keys.onEscapePressed: currentIndex = -1
+        highlightMoveDuration: 0
+        keyNavigationEnabled: true
 
-        Keys.onReturnPressed: {
-            if (root.dialog.selectionValid)
-                root.dialog.accepted((currentItem as FileEntry).modelData.path);
-        }
-        Keys.onEnterPressed: {
-            if (root.dialog.selectionValid)
-                root.dialog.accepted((currentItem as FileEntry).modelData.path);
+        Keys.onEscapePressed: currentIndex = -1
+        Keys.onReturnPressed: if (currentItem) root.open((currentItem as FileEntry).modelData)
+        Keys.onEnterPressed: if (currentItem) root.open((currentItem as FileEntry).modelData)
+        Keys.onPressed: event => {
+            if (event.key === Qt.Key_Backspace && root.dialog.cwd.length > 1) {
+                root.dialog.cwd.pop();
+                event.accepted = true;
+            } else if (event.key === Qt.Key_Tab) {
+                root.dialog.switchPane();
+                event.accepted = true;
+            }
         }
 
         StyledScrollBar.vertical: StyledScrollBar {
@@ -115,33 +199,16 @@ Item {
 
         add: Transition {
             Anim {
-                properties: "opacity,scale"
+                type: Anim.DefaultEffects
+                property: "opacity"
                 from: 0
                 to: 1
             }
         }
 
-        remove: Transition {
-            Anim {
-                type: Anim.DefaultEffects
-                property: "opacity"
-                to: 0
-            }
-            Anim {
-                property: "scale"
-                to: 0.5
-            }
-        }
-
         displaced: Transition {
             Anim {
-                type: Anim.DefaultEffects
-                properties: "opacity,scale"
-                to: 1
-                easing: Tokens.anim.standardDecel
-            }
-            Anim {
-                properties: "x,y"
+                property: "y"
             }
         }
     }
@@ -159,67 +226,77 @@ Item {
 
         required property int index
         required property FileSystemEntry modelData
+        readonly property bool current: ListView.isCurrentItem
 
-        readonly property real nonAnimHeight: icon.implicitHeight + name.anchors.topMargin + name.implicitHeight + Tokens.padding.medium * 2
+        width: ListView.view.width - Tokens.padding.small
+        implicitHeight: row.implicitHeight + Tokens.padding.small * 2
 
-        implicitWidth: Sizes.itemWidth
-        implicitHeight: nonAnimHeight
+        radius: Tokens.rounding.small
+        color: current ? Colours.palette.m3secondaryContainer : (index % 2 ? Qt.alpha(Colours.palette.m3onSurface, 0.025) : "transparent")
 
-        radius: Tokens.rounding.large
-        color: Qt.alpha(Colours.tPalette.m3surfaceContainerHighest, GridView.isCurrentItem ? Colours.tPalette.m3surfaceContainerHighest.a : 0)
-        z: GridView.isCurrentItem || implicitHeight !== nonAnimHeight ? 1 : 0
-        clip: true
+        Behavior on color {
+            CAnim {}
+        }
 
         StateLayer {
-            onClicked: view.currentIndex = item.index
-            onDoubleClicked: {
-                if (item.modelData.isDir)
-                    root.dialog.cwd.push(item.modelData.name);
-                else if (root.dialog.selectionValid)
-                    root.dialog.accepted(item.modelData.path);
+            radius: item.radius
+            color: item.current ? Colours.palette.m3onSecondaryContainer : Colours.palette.m3onSurface
+            onClicked: {
+                root.dialog.activate();
+                view.currentIndex = item.index;
             }
+            onDoubleClicked: root.open(item.modelData)
         }
 
-        CachingIconImage {
-            id: icon
-
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.top: parent.top
-            anchors.topMargin: Tokens.padding.medium
-
-            implicitSize: Sizes.itemWidth - Tokens.padding.medium * 2
-
-            Component.onCompleted: {
-                const file = item.modelData;
-                if (file.isImage)
-                    source = Qt.resolvedUrl(file.path);
-                else if (!file.isDir)
-                    source = Quickshell.iconPath(file.mimeType.replace("/", "-"), "application-x-zerosize");
-                else if (root.dialog.cwd.length === 1 && ["Desktop", "Documents", "Downloads", "Music", "Pictures", "Public", "Templates", "Videos"].includes(file.name))
-                    source = Quickshell.iconPath(`folder-${file.name.toLowerCase()}`);
-                else
-                    source = Quickshell.iconPath("inode-directory");
-            }
-        }
-
-        StyledText {
-            id: name
+        RowLayout {
+            id: row
 
             anchors.left: parent.left
             anchors.right: parent.right
-            anchors.top: icon.bottom
-            anchors.topMargin: Tokens.spacing.small
-            anchors.margins: Tokens.padding.medium
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.leftMargin: Tokens.padding.medium
+            anchors.rightMargin: Tokens.padding.medium
+            spacing: Tokens.spacing.medium
 
-            horizontalAlignment: Text.AlignHCenter
-            elide: item.GridView.isCurrentItem ? Text.ElideNone : Text.ElideRight
-            wrapMode: item.GridView.isCurrentItem ? Text.WrapAtWordBoundaryOrAnywhere : Text.NoWrap
+            CachingIconImage {
+                implicitSize: 22
 
-            Component.onCompleted: text = item.modelData.name
-        }
+                Component.onCompleted: {
+                    const file = item.modelData;
+                    if (file.isImage)
+                        source = Qt.resolvedUrl(file.path);
+                    else if (!file.isDir)
+                        source = Quickshell.iconPath(file.mimeType.replace("/", "-"), "application-x-zerosize");
+                    else if (root.dialog.cwd.length === 1 && ["Desktop", "Documents", "Downloads", "Music", "Pictures", "Public", "Templates", "Videos"].includes(file.name))
+                        source = Quickshell.iconPath(`folder-${file.name.toLowerCase()}`);
+                    else
+                        source = Quickshell.iconPath("inode-directory");
+                }
+            }
 
-        Behavior on implicitHeight {
-            Anim {}
+            StyledText {
+                Layout.fillWidth: true
+                text: item.modelData.name
+                elide: Text.ElideMiddle
+                color: item.current ? Colours.palette.m3onSecondaryContainer : Colours.palette.m3onSurface
+                font: Tokens.font.body.small
+            }
+
+            StyledText {
+                Layout.preferredWidth: root.typeWidth
+                text: root.typeOf(item.modelData)
+                elide: Text.ElideRight
+                color: item.current ? Colours.palette.m3onSecondaryContainer : Colours.palette.m3onSurfaceVariant
+                font: Tokens.font.body.small
+            }
+
+            StyledText {
+                Layout.preferredWidth: root.sizeWidth
+                horizontalAlignment: Text.AlignRight
+                text: item.modelData.isDir ? "—" : root.formatSize(item.modelData.size)
+                color: item.current ? Colours.palette.m3onSecondaryContainer : Colours.palette.m3onSurfaceVariant
+                font: Tokens.font.body.small
+            }
         }
     }
 }

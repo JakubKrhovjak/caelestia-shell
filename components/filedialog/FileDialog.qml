@@ -32,14 +32,12 @@ LazyLoader {
     FloatingWindow {
         id: root
 
-        property list<string> cwd: loader.cwd
         property string filterLabel: loader.filterLabel
         property list<string> filters: loader.filters
 
-        readonly property bool selectionValid: {
-            const file = folderContents.currentItem?.modelData;
-            return (file && !file.isDir && (filters.includes("*") || filters.some(filter => filter.toLowerCase() === file.suffix.toLowerCase()))) ?? false;
-        }
+        // Dva panely jako v Dolphinu; sidebar a tlačítka pracují s aktivním (naposledy kliknutým)
+        property var activePane: leftPane
+        readonly property bool selectionValid: activePane.selectionValid
 
         function accepted(path: string): void {
             loader.accepted(path);
@@ -49,8 +47,12 @@ LazyLoader {
             loader.rejected();
         }
 
-        implicitWidth: 1000
-        implicitHeight: 600
+        function switchPane(): void {
+            (activePane === leftPane ? rightPane : leftPane).activate();
+        }
+
+        implicitWidth: 1400
+        implicitHeight: 700
         minimumSize.width: 400
         minimumSize.height: 300
         color: Colours.tPalette.m3surface
@@ -69,7 +71,7 @@ LazyLoader {
 
             Sidebar {
                 Layout.fillHeight: true
-                dialog: root
+                dialog: root.activePane
             }
 
             ColumnLayout {
@@ -78,23 +80,35 @@ LazyLoader {
 
                 spacing: 0
 
-                HeaderBar {
-                    Layout.fillWidth: true
-                    dialog: root
-                }
-
-                FolderContents {
-                    id: folderContents
-
+                RowLayout {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    dialog: root
+                    spacing: 0
+
+                    Pane {
+                        id: leftPane
+
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        Layout.preferredWidth: 1
+                        dialog: root
+                        cwd: loader.cwd
+                    }
+
+                    Pane {
+                        id: rightPane
+
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        Layout.preferredWidth: 1
+                        dialog: root
+                    }
                 }
 
                 DialogButtons {
                     Layout.fillWidth: true
-                    dialog: root
-                    folder: folderContents
+                    dialog: root.activePane
+                    folder: root.activePane.folder
                 }
             }
         }
