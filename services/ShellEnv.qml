@@ -10,4 +10,9 @@ Singleton {
 
     // Stejná hodnota je v desk/config.lua, Lua a QML nemají společné úložiště
     readonly property string minimizedWorkspace: "special:minimized"
+
+    // Přes celou obrazovku běží třeba hra, panely ji nemají překrývat
+    function hasFullscreen(workspace: var): bool {
+        return workspace?.toplevels.values.some(t => t.lastIpcObject.fullscreen > 1) ?? false;
+    }
 }

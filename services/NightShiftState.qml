@@ -3,6 +3,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import qs.components
 
 // Night Shift pro prostředí desk: stav a plán. Barvy mění hyprsunset, spouští ho ~/.config/desk/nightshift.sh.
 // Caelestia ho nepoužívá, singleton se vytvoří až při prvním použití.
@@ -35,7 +36,7 @@ Singleton {
     }
 
     function save(): void {
-        store.setText(JSON.stringify({ enabled: active, temperature, scheduleEnabled, scheduleMode, scheduleFrom, scheduleTo }));
+        store.save({ enabled: active, temperature, scheduleEnabled, scheduleMode, scheduleFrom, scheduleTo });
     }
 
     function setActive(value: bool): void {
@@ -146,27 +147,26 @@ Singleton {
         }
     }
 
-    function load(content: string): void {
-        try {
-            const saved = JSON.parse(content);
-            active = saved.enabled === true;
-            temperature = Math.max(warmest, Math.min(coolest, saved.temperature ?? temperature));
-            scheduleEnabled = saved.scheduleEnabled === true;
-            scheduleFrom = isValidTime(saved.scheduleFrom ?? "") ? saved.scheduleFrom : scheduleFrom;
-            scheduleTo = isValidTime(saved.scheduleTo ?? "") ? saved.scheduleTo : scheduleTo;
-            // Starší soubor bez režimu a se zapnutým plánem znamená vlastní čas, ten se nesmí přepsat
-            scheduleMode = saved.scheduleMode ?? (scheduleEnabled ? "custom" : "sun");
-        } catch (error) {
-            console.warn("desk: invalid night shift file:", error);
-        }
+    function load(saved: var): void {
+        active = saved.enabled === true;
+        temperature = Math.max(warmest, Math.min(coolest, saved.temperature ?? temperature));
+        scheduleEnabled = saved.scheduleEnabled === true;
+        scheduleFrom = isValidTime(saved.scheduleFrom ?? "") ? saved.scheduleFrom : scheduleFrom;
+        scheduleTo = isValidTime(saved.scheduleTo ?? "") ? saved.scheduleTo : scheduleTo;
+        // Starší soubor bez režimu a se zapnutým plánem znamená vlastní čas, ten se nesmí přepsat
+        scheduleMode = saved.scheduleMode ?? (scheduleEnabled ? "custom" : "sun");
     }
 
-    FileView {
+    JsonFile {
         id: store
 
         path: `${ShellEnv.deskDir}/nightshift.json`
-        printErrors: false
-        onLoaded: root.load(text())
+        // Soubor zapisuje jen tahle služba; sledování by při tažení posuvníku vracelo starší hodnotu
+        watchChanges: false
+        onValueLoaded: value => {
+            if (value)
+                root.load(value);
+        }
     }
 
     Process {
