@@ -26,7 +26,7 @@ Singleton {
 
     // Podle začátku titulku: celý se mění se stránkou a Hyprland ho hlásí se zpožděním
     function isSettingsWindow(toplevel: var): bool {
-        return toplevel?.wayland?.appId === "org.quickshell" && (toplevel?.title ?? "").startsWith(titleFormat.arg(""));
+        return toplevel?.wayland?.appId === ShellEnv.shellClass && (toplevel?.title ?? "").startsWith(titleFormat.arg(""));
     }
 
     // Otevře stránku podle id z PageRegistry

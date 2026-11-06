@@ -20,8 +20,32 @@ LazyLoader {
     signal accepted(path: string)
     signal rejected
 
+    // Složka, kterou má nově otevřené okno ukázat
+    property string pendingPath: ""
+
     function open(): void {
         activeAsync = true;
+    }
+
+    // Absolutní cesta → cwd ve formátu dialogu (["Home", …] nebo ["/", …])
+    function pathToCwd(path: string): list<string> {
+        if (path === Paths.home)
+            return ["Home"];
+        if (path.startsWith(Paths.home + "/"))
+            return ["Home", ...path.slice(Paths.home.length + 1).split("/").filter(Boolean)];
+        return ["/", ...path.split("/").filter(Boolean)];
+    }
+
+    // Ukáže složku v aktivním panelu; cesta může být i ve tvaru file://, jen ten je procentově kódovaný
+    function openPath(path: string): void {
+        const local = path.startsWith("file://") ? decodeURIComponent(path.slice("file://".length)) : path;
+        const clean = local.replace(/\/+$/, "") || "/";
+        if (item) {
+            (item as FloatingWindow).showCwd(pathToCwd(clean));
+        } else {
+            pendingPath = clean;
+            activeAsync = true;
+        }
     }
 
     function close(): void {
@@ -101,6 +125,24 @@ LazyLoader {
                 rightPane.restoreTabs([Array.from(dialogState.right)], 0);
             if (dialogState.activeRight)
                 activePane = rightPane;
+            if (loader.pendingPath) {
+                showCwd(loader.pathToCwd(loader.pendingPath));
+                loader.pendingPath = "";
+            }
+        }
+
+        function pathToCwd(path: string): list<string> {
+            return loader.pathToCwd(path);
+        }
+
+        // Už otevřenou složku jen vybere, jinak přidá záložku
+        function showCwd(target: var): void {
+            const open = activePane.allTabs();
+            const existing = open.findIndex(tab => JSON.stringify(Array.from(tab)) === JSON.stringify(Array.from(target)));
+            if (existing >= 0)
+                activePane.restoreTabs(open, existing);
+            else
+                activePane.restoreTabs([...open, target], open.length);
         }
 
         function switchPane(): void {

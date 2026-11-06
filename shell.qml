@@ -52,6 +52,11 @@ ShellRoot {
             filePicker.open();
         }
 
+        // Složka z jiné aplikace (~/.config/desk/files-open.sh)
+        function openPath(path: string): void {
+            filePicker.openPath(path);
+        }
+
         function close(): void {
             filePicker.close();
         }

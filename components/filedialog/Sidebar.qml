@@ -33,17 +33,8 @@ StyledRect {
 
     property var disks: []
 
-    // Absolutní cesta → cwd ve formátu dialogu (["Home", …] nebo ["/", …])
-    function pathToCwd(path: string): list<string> {
-        if (path === Paths.home)
-            return ["Home"];
-        if (path.startsWith(Paths.home + "/"))
-            return ["Home", ...path.slice(Paths.home.length + 1).split("/").filter(Boolean)];
-        return ["/", ...path.split("/").filter(Boolean)];
-    }
-
     function go(path: string): void {
-        dialog.cwd = pathToCwd(path);
+        dialog.cwd = dialog.dialog.pathToCwd(path);
     }
 
     function normalize(path: string): string {
