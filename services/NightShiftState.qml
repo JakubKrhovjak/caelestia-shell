@@ -19,6 +19,8 @@ Singleton {
     property string scheduleFrom: "21:00"
     property string scheduleTo: "07:00"
     property string scheduleMode: "sun" // "sun" = od západu do východu slunce, "custom" = vlastní čas
+    // V automatickém režimu se teplota ručně nemění
+    readonly property bool temperatureEditable: !scheduleEnabled
 
     // Souřadnice pásma z databáze časových zón a dnešní časy slunce v minutách od půlnoci; -1 = neznámé
     property string timezone: ""
@@ -46,6 +48,9 @@ Singleton {
 
     function setTemperature(value: int): void {
         temperature = Math.round(value / 50) * 50;
+        // Bez plánu rozhoduje uživatel: pohyb posuvníkem má být hned vidět, jinak by nastavoval naslepo
+        if (!scheduleEnabled)
+            active = true;
         applyLater.restart();
     }
 

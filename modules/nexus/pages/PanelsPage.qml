@@ -1,6 +1,8 @@
+import QtQuick
 import QtQuick.Layouts
 import Caelestia.Config
 import Caelestia.I18n
+import qs.services
 import qs.modules.nexus.common
 
 PageBase {
@@ -14,6 +16,13 @@ PageBase {
         width: root.cappedWidth
         spacing: Tokens.spacing.extraSmall / 2
 
+        Loader {
+            Layout.fillWidth: true
+            Layout.bottomMargin: active ? Tokens.spacing.medium : 0
+            active: ShellEnv.isDesk
+            sourceComponent: DeskPanelSection {}
+        }
+
         NavRow {
             first: true
             icon: "dashboard"
@@ -22,7 +31,9 @@ PageBase {
             onClicked: root.nState.openSubPage(1)
         }
 
+        // Lišta Caelestie v desk neběží, panel má vlastní nastavení výše
         NavRow {
+            visible: !ShellEnv.isDesk
             icon: "dock_to_bottom"
             text: Tr.tr("Taskbar")
             subtext: Config.bar.persistent ? Tr.tr("Always visible") : Config.bar.showOnHover ? Tr.tr("Reveal on hover") : Tr.tr("Reveal on drag")

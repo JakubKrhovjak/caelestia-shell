@@ -51,8 +51,22 @@ QtObject {
             description: "Warmer colours, sunset schedule",
             category: ShellEnv.isDesk ? "connectivity" : "hidden"
         },
+        {
+            id: "displays",
+            label: "Displays",
+            icon: "monitor",
+            description: "Arrangement, resolution, scale",
+            category: ShellEnv.isDesk ? "connectivity" : "hidden"
+        },
 
         // System
+        {
+            id: "power",
+            label: "Power",
+            icon: "bolt",
+            description: "Performance, sleep, screen off",
+            category: ShellEnv.isDesk ? "system" : "hidden"
+        },
         {
             label: Tr.tr("Updates"),
             icon: "update",
@@ -67,18 +81,11 @@ QtObject {
         },
 
         // Shell
-        // Jen prostředí desk: v Caelestii je řádek skrytý, pořadí stránek musí sedět s PageCompRegistry
         {
-            id: "deskpanel",
-            label: "Top panel",
-            icon: "toolbar",
-            description: "Panel height, icon size",
-            category: ShellEnv.isDesk ? "shell" : "hidden"
-        },
-        {
+            id: "panels",
             label: Tr.tr("Panels"),
             icon: "dock_to_bottom",
-            description: Tr.tr("Dashboard, taskbar, launcher, sidebar"),
+            description: ShellEnv.isDesk ? "Panel size, dashboard, launcher, sidebar" : Tr.tr("Dashboard, taskbar, launcher, sidebar"),
             category: "shell"
         },
         {

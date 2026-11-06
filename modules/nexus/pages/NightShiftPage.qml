@@ -33,6 +33,8 @@ PageBase {
             Layout.topMargin: Tokens.spacing.medium
             first: true
             last: true
+            enabled: NightShiftState.temperatureEditable
+            opacity: enabled ? 1 : 0.5
             icon: "thermostat"
             label: "Colour temperature"
             valueLabel: `${NightShiftState.temperature} K`

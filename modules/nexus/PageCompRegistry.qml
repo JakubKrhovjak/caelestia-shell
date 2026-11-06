@@ -100,8 +100,24 @@ QtObject {
                 }
             }
         },
+        Component {
+            // Displays
+            StackPage {
+                Component {
+                    MonitorsPage {}
+                }
+            }
+        },
 
         // System
+        Component {
+            // Power
+            StackPage {
+                Component {
+                    PowerPage {}
+                }
+            }
+        },
         Component {
             PlaceholderComp {}
         },
@@ -110,14 +126,6 @@ QtObject {
         },
 
         // Shell
-        Component {
-            // Top panel
-            StackPage {
-                Component {
-                    DeskPanelPage {}
-                }
-            }
-        },
         Component {
             // Panels
             StackPage {
