@@ -160,7 +160,7 @@ Singleton {
     JsonFile {
         id: store
 
-        path: `${ShellEnv.deskDir}/nightshift.json`
+        path: `${ShellEnv.stateDir}/nightshift.json`
         // Soubor zapisuje jen tahle služba; sledování by při tažení posuvníku vracelo starší hodnotu
         watchChanges: false
         onValueLoaded: value => {
