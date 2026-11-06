@@ -41,6 +41,18 @@ Item {
         return file.suffix ? file.suffix.toUpperCase() : file.mimeType;
     }
 
+    readonly property string currentPath: dialog.cwd[0] === "Home"
+        ? Paths.home + `/${dialog.cwd.slice(1).join("/")}`
+        : dialog.cwd.join("/").replace(/^\/+/, "/")
+
+    // Přenese soubory (URL z drag&drop) do složky dest: Shift = přesun, jinak kopie (jako Dolphin)
+    function transfer(urls: list<url>, dest: string, move: bool): void {
+        const srcs = urls.map(u => decodeURIComponent(u.toString().replace(/^file:\/\//, "")))
+            .filter(src => src !== dest && !dest.startsWith(src + "/") && src.slice(0, src.lastIndexOf("/")) !== dest);
+        if (srcs.length > 0)
+            Quickshell.execDetached(move ? ["mv", "-n", "--", ...srcs, dest] : ["cp", "-rn", "--", ...srcs, dest]);
+    }
+
     function open(file: FileSystemEntry): void {
         if (file.isDir)
             dialog.cwd.push(file.name);
@@ -172,7 +184,17 @@ Item {
         Keys.onReturnPressed: if (currentItem) root.open((currentItem as FileEntry).modelData)
         Keys.onEnterPressed: if (currentItem) root.open((currentItem as FileEntry).modelData)
         Keys.onPressed: event => {
-            if (event.key === Qt.Key_Backspace && root.dialog.cwd.length > 1) {
+            const ctrl = event.modifiers & Qt.ControlModifier;
+            if (ctrl && event.key === Qt.Key_T) {
+                root.dialog.newTab();
+                event.accepted = true;
+            } else if (ctrl && event.key === Qt.Key_W) {
+                root.dialog.closeTab(root.dialog.currentTab);
+                event.accepted = true;
+            } else if (ctrl && (event.key === Qt.Key_Tab || event.key === Qt.Key_Backtab)) {
+                root.dialog.nextTab();
+                event.accepted = true;
+            } else if (event.key === Qt.Key_Backspace && root.dialog.cwd.length > 1) {
                 root.dialog.cwd.pop();
                 event.accepted = true;
             } else if (event.key === Qt.Key_Tab) {
@@ -186,12 +208,8 @@ Item {
         }
 
         model: FileSystemModel {
-            path: {
-                if (root.dialog.cwd[0] === "Home")
-                    return Paths.home + `/${root.dialog.cwd.slice(1).join("/")}`;
-                else
-                    return root.dialog.cwd.join("/");
-            }
+            path: root.currentPath
+            watchChanges: true
             onPathChanged: view.currentIndex = -1
         }
 
@@ -213,6 +231,27 @@ Item {
         }
     }
 
+    // Drop do prázdného místa seznamu = do aktuální složky
+    DropArea {
+        id: folderDrop
+
+        anchors.fill: view
+        keys: ["text/uri-list"]
+        onEntered: drag => drag.accept(drag.proposedAction)
+        onDropped: drop => {
+            root.transfer(drop.urls, root.currentPath, drop.action === Qt.MoveAction);
+            drop.accept(drop.action);
+        }
+    }
+
+    StyledRect {
+        anchors.fill: view
+        radius: Tokens.rounding.medium
+        color: "transparent"
+        border.width: 2
+        border.color: Qt.alpha(Colours.palette.m3primary, folderDrop.containsDrag ? 0.8 : 0)
+    }
+
     CurrentItem {
         anchors.right: parent.right
         anchors.bottom: parent.bottom
@@ -232,14 +271,62 @@ Item {
         implicitHeight: row.implicitHeight + Tokens.padding.small * 2
 
         radius: Tokens.rounding.small
-        color: current ? Colours.palette.m3secondaryContainer : (index % 2 ? Qt.alpha(Colours.palette.m3onSurface, 0.025) : "transparent")
+        color: rowDrop.containsDrag ? Qt.alpha(Colours.palette.m3primary, 0.25)
+             : current ? Colours.palette.m3secondaryContainer
+             : (index % 2 ? Qt.alpha(Colours.palette.m3onSurface, 0.025) : "transparent")
+
+        // Neviditelný „nosič“ systémového dragu – funguje i do jiných aplikací
+        Item {
+            id: dragProxy
+
+            width: item.width
+            height: item.height
+            Drag.active: rowLayer.drag.active
+            Drag.dragType: Drag.Automatic
+            Drag.supportedActions: Qt.CopyAction | Qt.MoveAction
+            Drag.proposedAction: Qt.CopyAction
+            Drag.mimeData: ({ "text/uri-list": "file://" + encodeURI(item.modelData.path) + "\r\n" })
+            Drag.onDragFinished: {
+                dragProxy.x = 0;
+                dragProxy.y = 0;
+            }
+        }
+
+        // Při stisknutí vyfotí řádek – ten obrázek pak jede s myší během přetahování
+        Connections {
+            target: rowLayer
+
+            function onPressed(mouse: MouseEvent): void {
+                dragProxy.Drag.hotSpot.x = mouse.x;
+                dragProxy.Drag.hotSpot.y = mouse.y;
+                item.grabToImage(result => dragProxy.Drag.imageSource = result.url);
+            }
+        }
+
+        // Drop na složku = do té složky
+        DropArea {
+            id: rowDrop
+
+            anchors.fill: parent
+            enabled: item.modelData.isDir
+            keys: ["text/uri-list"]
+            onEntered: drag => drag.accept(drag.proposedAction)
+            onDropped: drop => {
+                root.transfer(drop.urls, item.modelData.path, drop.action === Qt.MoveAction);
+                drop.accept(drop.action);
+            }
+        }
 
         Behavior on color {
             CAnim {}
         }
 
         StateLayer {
+            id: rowLayer
+
             radius: item.radius
+            drag.target: dragProxy
+            drag.threshold: 8
             color: item.current ? Colours.palette.m3onSecondaryContainer : Colours.palette.m3onSurface
             onClicked: {
                 root.dialog.activate();

@@ -8,12 +8,20 @@ import qs.components.misc
 import qs.services
 
 Scope {
+    ScreenshotPreview {
+        id: screenshotPreview
+    }
+
     LazyLoader {
         id: root
 
         property bool freeze
         property bool closing
         property bool clipboardOnly
+
+        signal captured(path: string, screen: ShellScreen)
+
+        onCaptured: (path, screen) => screenshotPreview.show(path, screen)
 
         Variants {
             model: Screens.screens
@@ -48,6 +56,11 @@ Scope {
     }
 
     IpcHandler {
+        // Ruční vyvolání náhledu: soubor se přesune do ~/Pictures/Screenshots a zkopíruje
+        function preview(path: string, screen: string): void {
+            screenshotPreview.show(path, Screens.screens.find(s => s.name === screen) ?? Screens.screens[0]);
+        }
+
         function open(): void {
             root.freeze = false;
             root.closing = false;

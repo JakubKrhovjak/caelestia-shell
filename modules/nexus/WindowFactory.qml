@@ -11,8 +11,26 @@ import qs.modules.nexus
 Singleton {
     id: root
 
+    // Nastavení má vždycky jen jedno okno: další otevření ho jen zafokusuje
+    property var current: null
+
     function create(parent: Item, props: var): void {
-        nexusComp.createObject(parent ?? dummy, props);
+        if (current) {
+            focusCurrent();
+            current.showPage(props?.startPage ?? -1);
+        } else
+            current = nexusComp.createObject(parent ?? dummy, props);
+    }
+
+    function focusCurrent(): void {
+        const toplevel = Hypr.toplevels.values.find(t => t.wayland?.appId === "org.quickshell" && t.title === current.title);
+        if (!toplevel)
+            return;
+
+        const target = `"address:0x${toplevel.address.replace(/^0x/, "")}"`;
+        const restore = toplevel.workspace?.name === "special:minimized" ? [`hl.dispatch(hl.dsp.window.move({ workspace = ${Hypr.focusedWorkspace?.id ?? 1}, follow = false, window = ${target} }))`] : [];
+        const focus = [`hl.dispatch(hl.dsp.focus({ window = ${target} }))`, "hl.dispatch(hl.dsp.window.bring_to_top())"];
+        Quickshell.execDetached(["hyprctl", "eval", [...restore, ...focus].join("; ")]);
     }
 
     QtObject {
@@ -25,6 +43,16 @@ Singleton {
         FloatingWindow {
             id: win
 
+            // Stránka, na které se okno otevře; -1 nechá výchozí
+            property int startPage: -1
+
+            function showPage(page: int): void {
+                if (page >= 0)
+                    nexus.nState.currentPageIdx = page;
+            }
+
+            Component.onCompleted: showPage(startPage)
+
             color: Colours.tPalette.m3surface
             surfaceFormat.opaque: false
 
@@ -32,6 +60,8 @@ Singleton {
                 if (!visible)
                     destroy();
             }
+
+            Component.onDestruction: root.current = null
 
             implicitWidth: nexus.implicitWidth
             implicitHeight: nexus.implicitHeight

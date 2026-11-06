@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Io
 import Quickshell.Widgets
 import Caelestia.Config
 import Caelestia.I18n
@@ -15,6 +16,17 @@ PageBase {
     readonly property DesktopEntry app: nState.selectedApp
     readonly property bool favouriteByRegex: app && matchedByRegex(GlobalConfig.launcher.favouriteApps, app.id)
     readonly property bool hiddenByRegex: app && matchedByRegex(GlobalConfig.launcher.hiddenApps, app.id)
+
+    // Spouštění po přihlášení existuje jen v prostředí desk: seznam čte ~/.config/desk/autostart.sh
+    readonly property bool hasAutostart: Quickshell.shellDir.endsWith("/desk")
+    readonly property var autostartEntry: app ? autostart[app.id] ?? null : null
+    property var autostart: ({})
+
+    function saveAutostart(entry: var): void {
+        const others = Object.entries(autostart).filter(([id]) => id !== app.id);
+        autostart = Object.fromEntries(entry ? [...others, [app.id, entry]] : others);
+        autostartFile.setText(JSON.stringify(autostart, null, 4) + "\n");
+    }
 
     function isRegexEntry(s: string): bool {
         return /^\^.*\$$/.test(s);
@@ -102,6 +114,46 @@ PageBase {
                 const apps = GlobalConfig.launcher.hiddenApps;
                 GlobalConfig.launcher.hiddenApps = checked ? [...apps, root.app.id] : apps.filter(a => a !== root.app.id);
             }
+        }
+
+        // Startup
+        FileView {
+            id: autostartFile
+
+            path: root.hasAutostart ? `${Paths.home}/.config/desk/autostart.json` : ""
+            watchChanges: true
+            onFileChanged: reload()
+            onLoaded: root.autostart = JSON.parse(text())
+        }
+
+        SectionHeader {
+            visible: root.hasAutostart
+            text: Tr.tr("Startup")
+        }
+
+        ToggleRow {
+            visible: root.hasAutostart
+            first: true
+            text: Tr.tr("Start at login")
+            subtext: root.app?.runInTerminal ? Tr.tr("Terminal apps can't start at login") : Tr.tr("Run the app after you log in")
+            enabled: !(root.app?.runInTerminal ?? false)
+            checked: root.autostartEntry !== null
+            onToggled: root.saveAutostart(checked ? {
+                command: root.app.command.filter(arg => !/^%[a-zA-Z]$/.test(arg)),
+                tray: false
+            } : null)
+        }
+
+        ToggleRow {
+            visible: root.hasAutostart
+            last: true
+            text: Tr.tr("Start in tray")
+            subtext: Tr.tr("Keep the window hidden at login, open it from the tray or the panel")
+            enabled: root.autostartEntry !== null
+            checked: root.autostartEntry?.tray ?? false
+            onToggled: root.saveAutostart(Object.assign({}, root.autostartEntry, {
+                tray: checked
+            }))
         }
 
         // Details

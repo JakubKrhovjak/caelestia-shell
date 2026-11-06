@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import Quickshell
 import Quickshell.Services.Pipewire
 import Caelestia.Config
 import Caelestia.I18n
@@ -75,10 +76,29 @@ Item {
             }
         }
 
+        // Klik na název otevře nastavení zvuku
         StyledText {
             Layout.topMargin: Tokens.spacing.medium
             text: Audio.muted ? Tr.tr("Volume (muted)") : Tr.tr("Volume (%1%)").arg(Math.round(Audio.volume * 100))
             font: Tokens.font.body.builders.medium.weight(Font.Medium).build()
+
+            Rectangle {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                height: 1
+                visible: volumeTitleArea.containsMouse
+                color: parent.color
+            }
+
+            MouseArea {
+                id: volumeTitleArea
+
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: root.popouts.detachRequested("audio")
+            }
         }
 
         CustomMouseArea {
@@ -100,6 +120,14 @@ Item {
                 value: Audio.volume
                 onInteraction: value => Audio.setVolume(value)
             }
+        }
+
+        // Night Shift má jen prostředí desk, Caelestia ho neukazuje
+        Loader {
+            Layout.fillWidth: true
+            active: Quickshell.shellDir.endsWith("/desk")
+            // Schéma qs: drží stejný modul jako shell.qml, jinak by NightShiftState měl dvě instance
+            source: active ? `qs:${Quickshell.shellDir}/panel/NightShift.qml` : ""
         }
 
         IconTextButton {

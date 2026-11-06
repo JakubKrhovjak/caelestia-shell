@@ -92,6 +92,14 @@ QtObject {
                 }
             }
         },
+        Component {
+            // Night Shift
+            StackPage {
+                Component {
+                    NightShiftPage {}
+                }
+            }
+        },
 
         // System
         Component {

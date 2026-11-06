@@ -74,7 +74,7 @@ StyledRect {
                         Loader {
                             asynchronous: true
                             Layout.rightMargin: Tokens.spacing.small
-                            active: folder.index > 0
+                            active: folder.index > 0 && !(folder.index === 1 && root.dialog.cwd[0] === "/")
                             sourceComponent: StyledText {
                                 text: "/"
                                 color: Colours.palette.m3onSurfaceVariant

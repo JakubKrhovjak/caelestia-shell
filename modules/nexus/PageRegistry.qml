@@ -1,6 +1,7 @@
 pragma Singleton
 
 import QtQuick
+import Quickshell
 import Caelestia.I18n
 
 QtObject {
@@ -41,6 +42,14 @@ QtObject {
             icon: "volume_up",
             description: Tr.tr("App volumes, sound devices"),
             category: "connectivity"
+        },
+        // Jen prostředí desk: v Caelestii je řádek skrytý, pořadí stránek musí sedět s PageCompRegistry
+        {
+            id: "nightshift",
+            label: "Night Shift",
+            icon: "bedtime",
+            description: "Warmer colours, sunset schedule",
+            category: Quickshell.shellDir.endsWith("/desk") ? "connectivity" : "hidden"
         },
 
         // System
