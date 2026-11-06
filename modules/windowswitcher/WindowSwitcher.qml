@@ -23,6 +23,9 @@ Scope {
     property int pendingSteps: 0
     property int track: 0
     property var windows: []
+    property var pendingWindow: null
+    // Kopie seznamu pro activate, close ho vyprázdní ještě před přepnutím
+    property var allWindows: []
     property ShellScreen targetScreen: null
 
     // Prostředí desk: jen okna z monitoru s fokusem a bez vyskakovacích oken z tray
@@ -64,6 +67,7 @@ Scope {
             return;
 
         windows = list;
+        allWindows = list;
         track = 0;
         step(pendingSteps);
         targetScreen = Quickshell.screens.find(s => s.name === Hypr.focusedMonitor?.name) ?? Quickshell.screens[0];
@@ -82,8 +86,10 @@ Scope {
         if (!selectedWindow)
             return;
 
-        activate(selectedWindow);
+        // Dokud je vrstva s výhradní klávesnicí otevřená, Hyprland přepnutí fokusu odmítne: nejdřív zavřít, pak přepnout
+        pendingWindow = selectedWindow;
         close();
+        activateLater.restart();
     }
 
     function close(): void {
@@ -98,7 +104,7 @@ Scope {
 
     function activate(win: var): void {
         // Rozložené okno nejde zvednout nad plovoucí, takže se samo přepne na plovoucí se stejnou geometrií
-        const covered = !win.floating && windows.some(w => w.floating && w.workspace.id === win.workspace.id && overlaps(win, w));
+        const covered = !win.floating && allWindows.some(w => w.floating && w.workspace.id === win.workspace.id && overlaps(win, w));
         const target = `"address:${win.address}"`;
         const floatLines = covered ? [
             `hl.dispatch(hl.dsp.window.float({ action = "on", window = ${target} }))`,
@@ -117,6 +123,13 @@ Scope {
             ...floatLines,
             "hl.dispatch(hl.dsp.window.bring_to_top())",
         ].join("; ")]);
+    }
+
+    Timer {
+        id: activateLater
+
+        interval: 50
+        onTriggered: root.activate(root.pendingWindow)
     }
 
     Process {
