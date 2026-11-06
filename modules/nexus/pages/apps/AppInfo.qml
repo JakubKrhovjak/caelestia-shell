@@ -23,6 +23,8 @@ PageBase {
     property var autostart: ({})
 
     function saveAutostart(entry: var): void {
+        if (autostartFile.invalid)
+            return;
         const others = Object.entries(autostart).filter(([id]) => id !== app.id);
         autostart = Object.fromEntries(entry ? [...others, [app.id, entry]] : others);
         autostartFile.setText(JSON.stringify(autostart, null, 4) + "\n");
@@ -117,13 +119,11 @@ PageBase {
         }
 
         // Startup
-        FileView {
+        JsonFile {
             id: autostartFile
 
             path: root.hasAutostart ? `${ShellEnv.deskDir}/autostart.json` : ""
-            watchChanges: true
-            onFileChanged: reload()
-            onLoaded: root.autostart = JSON.parse(text())
+            onValueLoaded: value => root.autostart = value
         }
 
         SectionHeader {

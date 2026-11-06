@@ -5,6 +5,9 @@ import Quickshell.Io
 FileView {
     id: root
 
+    // Poškozený soubor: vlastník ho nemá přepisovat, jinak by zmizelo, co se ještě dá opravit ručně
+    property bool invalid: false
+
     signal valueLoaded(value: var)
 
     function save(value: var): void {
@@ -16,8 +19,11 @@ FileView {
     onFileChanged: reload()
     onLoaded: {
         try {
-            root.valueLoaded(JSON.parse(text()));
+            const value = JSON.parse(text());
+            root.invalid = false;
+            root.valueLoaded(value);
         } catch (error) {
+            root.invalid = true;
             console.warn(`desk: invalid file ${root.path}:`, error);
         }
     }

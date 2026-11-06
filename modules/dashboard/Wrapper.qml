@@ -13,6 +13,8 @@ Item {
     id: root
 
     required property ScreenState screenState
+    // Desk počítá s hotovou výškou už před otevřením; výchozí chování Caelestie se nemění
+    property bool keepLoaded: false
     readonly property FileDialog facePicker: FileDialog {
         title: Tr.tr("Select a profile picture")
         filterLabel: Tr.tr("Image files")
@@ -47,7 +49,7 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
 
-        active: root.shouldBeActive || root.visible
+        active: root.keepLoaded || root.shouldBeActive || root.visible
 
         sourceComponent: Content {
             screenState: root.screenState
