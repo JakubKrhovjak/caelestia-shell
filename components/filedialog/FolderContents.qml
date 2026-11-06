@@ -24,6 +24,8 @@ Item {
 
     readonly property real typeWidth: 150
     readonly property real sizeWidth: 90
+    // V úzkém panelu by na název nezbylo místo; typ souboru je vidět i z ikony
+    readonly property bool showType: width >= 480
 
     function formatSize(bytes: real): string {
         const units = ["B", "KiB", "MiB", "GiB", "TiB"];
@@ -106,6 +108,7 @@ Item {
         }
 
         StyledText {
+            visible: root.showType
             Layout.preferredWidth: root.typeWidth
             text: Tr.tr("Type")
             color: Colours.palette.m3onSurfaceVariant
@@ -370,6 +373,7 @@ Item {
             }
 
             StyledText {
+                visible: root.showType
                 Layout.preferredWidth: root.typeWidth
                 text: root.typeOf(item.modelData)
                 elide: Text.ElideRight
