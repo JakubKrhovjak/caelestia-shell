@@ -106,9 +106,9 @@ Scope {
             `hl.dispatch(hl.dsp.window.move({ x = ${win.at[0]}, y = ${win.at[1]}, relative = false, window = ${target} }))`,
         ] : [];
 
-        // Minimalizované okno se musí nejdřív vrátit, jinak by fokus otevřel celou skrytou plochu
+        // Minimalizované okno vrací restore_window z desk/windows.lua, fokus na skrytou plochu by ji celou otevřel
         const restoreLines = win.workspace.name === minimizedWorkspace && minimizedWorkspace !== "" ? [
-            `hl.dispatch(hl.dsp.window.move({ workspace = ${Hypr.focusedMonitor?.activeWorkspace?.id ?? 1}, follow = false, window = ${target} }))`,
+            `restore_window("${win.address}", ${Hypr.focusedMonitor?.activeWorkspace?.id ?? 1})`,
         ] : [];
 
         Quickshell.execDetached(["hyprctl", "eval", [

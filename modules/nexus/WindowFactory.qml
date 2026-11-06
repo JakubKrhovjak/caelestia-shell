@@ -27,10 +27,12 @@ Singleton {
         if (!toplevel)
             return;
 
-        const target = `"address:0x${toplevel.address.replace(/^0x/, "")}"`;
-        const restore = toplevel.workspace?.name === "special:minimized" ? [`hl.dispatch(hl.dsp.window.move({ workspace = ${Hypr.focusedWorkspace?.id ?? 1}, follow = false, window = ${target} }))`] : [];
-        const focus = [`hl.dispatch(hl.dsp.focus({ window = ${target} }))`, "hl.dispatch(hl.dsp.window.bring_to_top())"];
-        Quickshell.execDetached(["hyprctl", "eval", [...restore, ...focus].join("; ")]);
+        const address = `0x${toplevel.address.replace(/^0x/, "")}`;
+        // Minimalizované okno existuje jen v desk, vrací ho restore_window z desk/windows.lua
+        const lines = toplevel.workspace?.name === "special:minimized"
+            ? [`restore_window("${address}", ${Hypr.focusedWorkspace?.id ?? 1})`]
+            : [`hl.dispatch(hl.dsp.focus({ window = "address:${address}" }))`, "hl.dispatch(hl.dsp.window.bring_to_top())"];
+        Quickshell.execDetached(["hyprctl", "eval", lines.join("; ")]);
     }
 
     QtObject {
