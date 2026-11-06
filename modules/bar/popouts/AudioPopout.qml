@@ -125,7 +125,7 @@ Item {
         // Night Shift má jen prostředí desk, Caelestia ho neukazuje
         Loader {
             Layout.fillWidth: true
-            active: Quickshell.shellDir.endsWith("/desk")
+            active: ShellEnv.isDesk
             // Schéma qs: drží stejný modul jako shell.qml, jinak by NightShiftState měl dvě instance
             source: active ? `qs:${Quickshell.shellDir}/panel/NightShift.qml` : ""
         }

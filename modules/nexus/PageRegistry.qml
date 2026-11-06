@@ -1,7 +1,7 @@
 pragma Singleton
 
 import QtQuick
-import Quickshell
+import qs.services
 import Caelestia.I18n
 
 QtObject {
@@ -49,7 +49,7 @@ QtObject {
             label: "Night Shift",
             icon: "bedtime",
             description: "Warmer colours, sunset schedule",
-            category: Quickshell.shellDir.endsWith("/desk") ? "connectivity" : "hidden"
+            category: ShellEnv.isDesk ? "connectivity" : "hidden"
         },
 
         // System

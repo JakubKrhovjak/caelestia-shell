@@ -29,7 +29,7 @@ Singleton {
 
         const address = `0x${toplevel.address.replace(/^0x/, "")}`;
         // Minimalizované okno existuje jen v desk, vrací ho restore_window z desk/minimize.lua
-        const lines = toplevel.workspace?.name === "special:minimized"
+        const lines = toplevel.workspace?.name === ShellEnv.minimizedWorkspace
             ? [`restore_window("${address}", ${Hypr.focusedWorkspace?.id ?? 1})`]
             : [`hl.dispatch(hl.dsp.focus({ window = "address:${address}" }))`, "hl.dispatch(hl.dsp.window.bring_to_top())"];
         Quickshell.execDetached(["hyprctl", "eval", lines.join("; ")]);

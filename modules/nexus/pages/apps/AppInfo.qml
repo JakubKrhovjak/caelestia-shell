@@ -18,7 +18,7 @@ PageBase {
     readonly property bool hiddenByRegex: app && matchedByRegex(GlobalConfig.launcher.hiddenApps, app.id)
 
     // Spouštění po přihlášení existuje jen v prostředí desk: seznam čte ~/.config/desk/autostart.sh
-    readonly property bool hasAutostart: Quickshell.shellDir.endsWith("/desk")
+    readonly property bool hasAutostart: ShellEnv.isDesk
     readonly property var autostartEntry: app ? autostart[app.id] ?? null : null
     property var autostart: ({})
 
@@ -120,7 +120,7 @@ PageBase {
         FileView {
             id: autostartFile
 
-            path: root.hasAutostart ? `${Paths.home}/.config/desk/autostart.json` : ""
+            path: root.hasAutostart ? `${ShellEnv.deskDir}/autostart.json` : ""
             watchChanges: true
             onFileChanged: reload()
             onLoaded: root.autostart = JSON.parse(text())

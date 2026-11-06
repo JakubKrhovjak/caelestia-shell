@@ -164,7 +164,7 @@ Singleton {
     FileView {
         id: store
 
-        path: `${Quickshell.env("HOME")}/.config/desk/nightshift.json`
+        path: `${ShellEnv.deskDir}/nightshift.json`
         printErrors: false
         onLoaded: root.load(text())
     }
