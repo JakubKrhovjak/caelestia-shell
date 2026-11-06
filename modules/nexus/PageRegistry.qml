@@ -67,6 +67,14 @@ QtObject {
         },
 
         // Shell
+        // Jen prostředí desk: v Caelestii je řádek skrytý, pořadí stránek musí sedět s PageCompRegistry
+        {
+            id: "deskpanel",
+            label: "Top panel",
+            icon: "toolbar",
+            description: "Panel height, icon size",
+            category: ShellEnv.isDesk ? "shell" : "hidden"
+        },
         {
             label: Tr.tr("Panels"),
             icon: "dock_to_bottom",

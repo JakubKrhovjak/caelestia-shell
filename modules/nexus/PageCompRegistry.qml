@@ -111,6 +111,14 @@ QtObject {
 
         // Shell
         Component {
+            // Top panel
+            StackPage {
+                Component {
+                    DeskPanelPage {}
+                }
+            }
+        },
+        Component {
             // Panels
             StackPage {
                 Component {

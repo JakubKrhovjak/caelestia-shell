@@ -123,7 +123,7 @@ PageBase {
             id: autostartFile
 
             path: root.hasAutostart ? `${ShellEnv.deskDir}/autostart.json` : ""
-            onValueLoaded: value => root.autostart = value
+            onValueLoaded: root.autostart = value
         }
 
         SectionHeader {

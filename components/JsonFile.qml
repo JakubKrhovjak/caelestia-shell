@@ -8,10 +8,14 @@ FileView {
     // Poškozený soubor: vlastník ho nemá přepisovat, jinak by zmizelo, co se ještě dá opravit ručně
     property bool invalid: false
 
-    signal valueLoaded(value: var)
+    // Hodnota je ve vlastnosti, ne v parametru signálu: ten by z pole udělal typ, na kterém Array.isArray vrací false
+    property var value
 
-    function save(value: var): void {
-        setText(JSON.stringify(value));
+    signal valueLoaded
+
+    function save(newValue: var): void {
+        if (!invalid)
+            setText(JSON.stringify(newValue));
     }
 
     watchChanges: true
@@ -19,9 +23,9 @@ FileView {
     onFileChanged: reload()
     onLoaded: {
         try {
-            const value = JSON.parse(text());
+            root.value = JSON.parse(text());
             root.invalid = false;
-            root.valueLoaded(value);
+            root.valueLoaded();
         } catch (error) {
             root.invalid = true;
             console.warn(`desk: invalid file ${root.path}:`, error);

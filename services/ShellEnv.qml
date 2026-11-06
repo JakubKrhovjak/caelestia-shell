@@ -11,6 +11,10 @@ Singleton {
     readonly property string stateDir: Quickshell.env("DESK_STATE_DIR") || `${Quickshell.env("XDG_STATE_HOME") || `${Quickshell.env("HOME")}/.local/state`}/desk`
     readonly property string minimizedWorkspace: Quickshell.env("DESK_MINIMIZED_WORKSPACE") || "special:minimized"
 
+    function isMinimized(toplevel: var): bool {
+        return toplevel?.workspace?.name === minimizedWorkspace;
+    }
+
     // Přes celou obrazovku běží třeba hra, panely ji nemají překrývat
     function hasFullscreen(workspace: var): bool {
         return workspace?.toplevels.values.some(t => t.lastIpcObject.fullscreen > 1) ?? false;
