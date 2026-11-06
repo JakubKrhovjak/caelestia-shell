@@ -18,11 +18,19 @@ ColumnLayout {
     }
 
     SliderRow {
-        last: true
         icon: "photo_size_select_small"
         label: "Icon size"
         valueLabel: `${DeskPanelSettings.iconSize} px`
         value: (DeskPanelSettings.requestedIconSize - DeskPanelSettings.minIconSize) / (DeskPanelSettings.maxIconSize - DeskPanelSettings.minIconSize)
         onMoved: value => DeskPanelSettings.setIconSize(DeskPanelSettings.minIconSize + value * (DeskPanelSettings.maxIconSize - DeskPanelSettings.minIconSize))
+    }
+
+    SliderRow {
+        last: true
+        icon: "more_horiz"
+        label: "Tray icon size"
+        valueLabel: `${DeskPanelSettings.trayIconSize} px`
+        value: (DeskPanelSettings.requestedTrayIconSize - DeskPanelSettings.minIconSize) / (DeskPanelSettings.maxIconSize - DeskPanelSettings.minIconSize)
+        onMoved: value => DeskPanelSettings.setTrayIconSize(DeskPanelSettings.minIconSize + value * (DeskPanelSettings.maxIconSize - DeskPanelSettings.minIconSize))
     }
 }

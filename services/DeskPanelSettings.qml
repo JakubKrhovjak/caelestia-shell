@@ -20,6 +20,7 @@ Singleton {
 
     property int panelHeight: 46
     property int requestedIconSize: defaultIconSize
+    property int requestedTrayIconSize: 22
     // Výška, se kterou počítají okna; po změně je přepočítá panel
     property int fittedPanelHeight: panelHeight
 
@@ -28,7 +29,7 @@ Singleton {
     // Ikona se musí vejít do tlačítka i při malém panelu
     readonly property int iconSize: Math.min(requestedIconSize, panelHeight - 10)
     readonly property int smallIconSize: iconSize - 4
-    readonly property int trayIconSize: iconSize - 6
+    readonly property int trayIconSize: Math.min(requestedTrayIconSize, panelHeight - 10)
     readonly property real iconScale: iconSize / defaultIconSize
 
     readonly property int groupHeight: panelHeight - 6
@@ -50,13 +51,18 @@ Singleton {
         saveTimer.restart();
     }
 
+    function setTrayIconSize(value: real): void {
+        requestedTrayIconSize = clamped(value, minIconSize, maxIconSize);
+        saveTimer.restart();
+    }
+
     // Posuvník mění hodnotu plynule, na disk stačí konečný stav
     Timer {
         id: saveTimer
 
         interval: 300
         onTriggered: {
-            store.save({ panelHeight: root.panelHeight, iconSize: root.requestedIconSize });
+            store.save({ panelHeight: root.panelHeight, iconSize: root.requestedIconSize, trayIconSize: root.requestedTrayIconSize });
             if (root.panelHeight !== root.fittedPanelHeight) {
                 const oldHeight = root.fittedPanelHeight;
                 root.fittedPanelHeight = root.panelHeight;
@@ -77,6 +83,8 @@ Singleton {
             root.panelHeight = root.clamped(value?.panelHeight ?? root.panelHeight, root.minPanelHeight, root.maxPanelHeight);
             root.fittedPanelHeight = root.panelHeight;
             root.requestedIconSize = root.clamped(value?.iconSize ?? root.requestedIconSize, root.minIconSize, root.maxIconSize);
+            // Starší soubor velikost pro tray nemá: dřív byla o 6 px menší než ostatní ikony
+            root.requestedTrayIconSize = root.clamped(value?.trayIconSize ?? root.requestedIconSize - 6, root.minIconSize, root.maxIconSize);
         }
     }
 }

@@ -47,7 +47,8 @@ Singleton {
     }
 
     function layer(c: color, layer: var): color {
-        if (!transparency.enabled)
+        // Simpleton Test (desk/season-scheme.py) staví na kontrastu čipů a pozadí, který by průhlednost smazala
+        if (!transparency.enabled || scheme === "season-simpleton-test")
             return c;
 
         return layer === 0 ? Qt.alpha(c, transparency.base) : alterColour(c, transparency.layers, layer ?? 1);
@@ -79,7 +80,8 @@ Singleton {
     }
 
     function setMode(mode: string): void {
-        Quickshell.execDetached(["caelestia", "scheme", "set", "--notify", "-m", mode]);
+        // V desk přes skript: schémata ročních období caelestia nezná a přepnutí motivu by na nich spadlo
+        Quickshell.execDetached(ShellEnv.isDesk ? [`${ShellEnv.deskDir}/season-scheme.py`, "--mode", mode] : ["caelestia", "scheme", "set", "--notify", "-m", mode]);
     }
 
     function reloadHyprRules(): void {

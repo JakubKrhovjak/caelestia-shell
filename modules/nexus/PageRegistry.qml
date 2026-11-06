@@ -77,7 +77,7 @@ QtObject {
             label: Tr.tr("Plugins"),
             icon: "extension",
             description: Tr.tr("Manage plugins"),
-            category: "system"
+            category: ShellEnv.isDesk ? "hidden" : "system"
         },
 
         // Shell

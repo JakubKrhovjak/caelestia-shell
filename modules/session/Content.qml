@@ -10,13 +10,17 @@ import qs.components.controls
 import qs.services
 import qs.utils
 
-Column {
+Grid {
     id: root
 
     required property ScreenState screenState
 
+    // V desk naležato, tlačítka se pak procházejí i šipkami do stran
+    columns: ShellEnv.isDesk ? 4 : 1
+
     padding: Tokens.padding.large
-    rightPadding: CUtils.clamp(padding - Config.border.thickness, 0, padding)
+    // V desk je nabídka uprostřed obrazovky, ne u okraje, takže má dokola stejný okraj
+    rightPadding: ShellEnv.isDesk ? padding : CUtils.clamp(padding - Config.border.thickness, 0, padding)
     spacing: Tokens.spacing.large
 
     SessionButton {
@@ -26,6 +30,7 @@ Column {
         command: Config.session.commands.logout
 
         KeyNavigation.down: shutdown
+        KeyNavigation.right: shutdown
 
         Component.onCompleted: forceActiveFocus()
 
@@ -47,9 +52,12 @@ Column {
 
         KeyNavigation.up: logout
         KeyNavigation.down: hibernate
+        KeyNavigation.left: logout
+        KeyNavigation.right: hibernate
     }
 
     AnimatedImage {
+        visible: !ShellEnv.isDesk
         width: Tokens.sizes.session.button
         height: Tokens.sizes.session.button
         sourceSize.width: width * ((QsWindow.window as QsWindow)?.devicePixelRatio ?? 1)
@@ -69,6 +77,8 @@ Column {
 
         KeyNavigation.up: shutdown
         KeyNavigation.down: reboot
+        KeyNavigation.left: shutdown
+        KeyNavigation.right: reboot
     }
 
     SessionButton {
@@ -78,6 +88,7 @@ Column {
         command: Config.session.commands.reboot
 
         KeyNavigation.up: hibernate
+        KeyNavigation.left: hibernate
     }
 
     component SessionButton: IconButton {
