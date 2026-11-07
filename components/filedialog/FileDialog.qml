@@ -153,7 +153,7 @@ LazyLoader {
         implicitHeight: dialogState.height
         minimumSize.width: 400
         minimumSize.height: 300
-        color: Colours.tPalette.m3surface
+        color: Colours.palette.m3surface
         surfaceFormat.opaque: false
         title: loader.title
 

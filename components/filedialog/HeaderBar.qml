@@ -14,7 +14,7 @@ StyledRect {
     implicitWidth: inner.implicitWidth + Tokens.padding.medium * 2
     implicitHeight: inner.implicitHeight + Tokens.padding.medium * 2
 
-    color: Colours.tPalette.m3surfaceContainer
+    color: Colours.palette.m3surfaceContainer
 
     RowLayout {
         id: inner
@@ -47,7 +47,7 @@ StyledRect {
             Layout.fillWidth: true
 
             radius: Tokens.rounding.medium
-            color: Colours.tPalette.m3surfaceContainerHigh
+            color: Colours.palette.m3surfaceContainerHigh
 
             implicitHeight: pathComponents.implicitHeight + pathComponents.anchors.margins * 2
 

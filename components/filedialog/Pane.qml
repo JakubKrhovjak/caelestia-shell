@@ -149,7 +149,7 @@ StyledRect {
                     Layout.maximumWidth: 220
                     implicitHeight: tabInner.implicitHeight + Tokens.padding.small * 2
                     radius: Tokens.rounding.full
-                    color: current ? Colours.palette.m3secondaryContainer : Colours.tPalette.m3surfaceContainerHigh
+                    color: current ? Colours.palette.m3secondaryContainer : Colours.palette.m3surfaceContainerHigh
 
                     Behavior on color {
                         CAnim {}

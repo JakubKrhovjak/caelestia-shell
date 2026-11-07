@@ -54,7 +54,7 @@ StyledRect {
     implicitWidth: Sizes.sidebarWidth
     implicitHeight: inner.implicitHeight + Tokens.padding.medium * 2
 
-    color: Colours.tPalette.m3surfaceContainer
+    color: Colours.palette.m3surfaceContainer
 
     FileView {
         path: `${Paths.config}/file-bookmarks.json`
@@ -69,8 +69,19 @@ StyledRect {
         }
     }
 
+    // Připojení a odpojení (flashka přes udiskie) hlásí findmnt --poll; každá změna znovu načte seznam disků
+    Process {
+        running: true
+        command: ["findmnt", "--poll", "-n", "-o", "ACTION"]
+        stdout: SplitParser {
+            onRead: diskQuery.running = true
+        }
+    }
+
     // Připojené disky (jeden řádek na zařízení; btrfs subvolumy sloučí)
     Process {
+        id: diskQuery
+
         running: true
         command: ["findmnt", "-J", "-l", "-b", "-o", "TARGET,SOURCE,FSTYPE,LABEL,SIZE,USED",
             "-t", "ext4,btrfs,xfs,vfat,exfat,ntfs,ntfs3,f2fs,fuseblk"]
