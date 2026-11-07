@@ -103,26 +103,9 @@ Scope {
     }
 
     function activate(win: var): void {
-        // Rozložené okno nejde zvednout nad plovoucí, takže se samo přepne na plovoucí se stejnou geometrií
+        // Rozložené okno nejde zvednout nad plovoucí, proto se přepne na plovoucí (HyprWindows.activate)
         const covered = !win.floating && allWindows.some(w => w.floating && w.workspace.id === win.workspace.id && overlaps(win, w));
-        const target = `"address:${win.address}"`;
-        const floatLines = covered ? [
-            `hl.dispatch(hl.dsp.window.float({ action = "on", window = ${target} }))`,
-            `hl.dispatch(hl.dsp.window.resize({ x = ${win.size[0]}, y = ${win.size[1]}, relative = false, window = ${target} }))`,
-            `hl.dispatch(hl.dsp.window.move({ x = ${win.at[0]}, y = ${win.at[1]}, relative = false, window = ${target} }))`,
-        ] : [];
-
-        // Minimalizované okno vrací restore_window z desk/minimize.lua, fokus na skrytou plochu by ji celou otevřel
-        const restoreLines = win.workspace.name === minimizedWorkspace && minimizedWorkspace !== "" ? [
-            `restore_window("${win.address}", ${Hypr.focusedMonitor?.activeWorkspace?.id ?? 1})`,
-        ] : [];
-
-        Quickshell.execDetached(["hyprctl", "eval", [
-            ...restoreLines,
-            `hl.dispatch(hl.dsp.focus({ window = ${target} }))`,
-            ...floatLines,
-            "hl.dispatch(hl.dsp.window.bring_to_top())",
-        ].join("; ")]);
+        HyprWindows.activate(win, minimizedWorkspace, covered);
     }
 
     Timer {

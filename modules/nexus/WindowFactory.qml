@@ -39,12 +39,11 @@ Singleton {
         if (!toplevel)
             return;
 
-        const address = `0x${toplevel.address.replace(/^0x/, "")}`;
-        // Minimalizované okno existuje jen v desk, vrací ho restore_window z desk/minimize.lua
-        const lines = ShellEnv.isMinimized(toplevel)
-            ? [`restore_window("${address}", ${Hypr.focusedWorkspace?.id ?? 1})`]
-            : [`hl.dispatch(hl.dsp.focus({ window = "address:${address}" }))`, "hl.dispatch(hl.dsp.window.bring_to_top())"];
-        Quickshell.execDetached(["hyprctl", "eval", lines.join("; ")]);
+        // Minimalizované okno existuje jen v desk
+        if (ShellEnv.isMinimized(toplevel))
+            HyprWindows.run([HyprWindows.restoreTo(toplevel.address, Hypr.focusedWorkspace?.id ?? 1)]);
+        else
+            HyprWindows.focusAndRaise(toplevel.address);
     }
 
     QtObject {

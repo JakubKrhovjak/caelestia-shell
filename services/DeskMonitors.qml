@@ -154,7 +154,7 @@ Singleton {
         pending = false;
         dropBackup();
         if (restartOnKeep) {
-            Quickshell.execDetached(["hyprctl", "eval", `panel_moved("${ShellEnv.mainMonitor}", ${DeskPanelSettings.panelHeight})`]);
+            HyprWindows.panelMoved(ShellEnv.mainMonitor, DeskPanelSettings.panelHeight);
             Quickshell.execDetached([`${ShellEnv.deskDir}/restart-shell.sh`]);
         }
     }

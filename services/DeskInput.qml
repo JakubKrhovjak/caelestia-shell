@@ -33,8 +33,7 @@ Singleton {
     }
 
     function apply(): void {
-        const input = `sensitivity = ${sensitivity}, accel_profile = "${acceleration ? "adaptive" : "flat"}", natural_scroll = ${naturalScroll}, repeat_delay = ${repeatDelay}, repeat_rate = ${repeatRate}`;
-        Quickshell.execDetached(["hyprctl", "eval", `hl.config({ input = { ${input} } })`]);
+        HyprWindows.setInput(sensitivity, acceleration, naturalScroll, repeatDelay, repeatRate);
     }
 
     JsonFile {

@@ -108,14 +108,14 @@ Singleton {
         id: windowBarTimer
 
         interval: 50
-        onTriggered: Quickshell.execDetached(["hyprctl", "eval", `window_bar_opacity(${root.windowBars.value})`])
+        onTriggered: HyprWindows.setWindowBarOpacity(root.windowBars.value)
     }
 
     Timer {
         id: windowTimer
 
         interval: 50
-        onTriggered: Quickshell.execDetached(["hyprctl", "eval", `window_opacity(${root.windows.value})`])
+        onTriggered: HyprWindows.setShellWindowOpacity(root.windows.value)
     }
 
     // Ghostty kvůli změně znovu načítá celou konfiguraci, proto delší prodleva
