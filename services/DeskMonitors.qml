@@ -70,7 +70,8 @@ Singleton {
     function snapped(output: var, x: real, y: real): var {
         const size = logicalSize(output);
         const others = outputs.filter(other => other.name !== output.name && !other.disabled);
-        const candidates = others.flatMap(other => {
+        // Seznam z QML vlastnosti nemá flatMap, proto map a spojení přes reduce
+        const candidates = others.map(other => {
             const otherSize = logicalSize(other);
             const alongY = Math.max(other.y - size.h + 1, Math.min(other.y + otherSize.h - 1, Math.abs(y - other.y) < 100 ? other.y : y));
             const alongX = Math.max(other.x - size.w + 1, Math.min(other.x + otherSize.w - 1, Math.abs(x - other.x) < 100 ? other.x : x));
@@ -80,7 +81,7 @@ Singleton {
                 { x: alongX, y: other.y - size.h },
                 { x: alongX, y: other.y + otherSize.h }
             ];
-        });
+        }).reduce((all, list) => all.concat(list), []);
         const distance = candidate => Math.hypot(candidate.x - x, candidate.y - y);
         return candidates.reduce((best, candidate) => !best || distance(candidate) < distance(best) ? candidate : best, null) ?? { x: 0, y: 0 };
     }
