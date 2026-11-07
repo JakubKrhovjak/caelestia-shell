@@ -4,36 +4,55 @@ import QtQuick
 import Quickshell
 import qs.components
 
-// Klávesnice a myš pro stránku Keyboard & mouse v prostředí desk. Ukládá se do verzovaného desk/input-settings.json,
-// který čte i desk/config.lua při startu; změna se hned použije přes hyprctl eval. Caelestia tuhle službu nepoužívá.
+// Klávesnice a myš pro stránku Keyboard & mouse v prostředí desk. Ukládá se do desk/input-settings.json, který čte
+// i desk/config.lua při startu (tam jsou stejné meze, viz load_input); změna se hned použije přes HyprWindows.
+// Caelestia tuhle službu nepoužívá.
 Singleton {
     id: root
 
-    property real sensitivity: 0
+    // Jediné místo s mezemi a výchozími hodnotami v QML; stránka bere from a to odsud
+    readonly property var limits: ({
+            sensitivity: { from: -1, to: 1, initial: 0 },
+            repeatDelay: { from: 150, to: 1000, initial: 250 },
+            repeatRate: { from: 10, to: 60, initial: 35 }
+        })
+
+    property real sensitivity: limits.sensitivity.initial
     property bool acceleration: true
     property bool naturalScroll: false
-    property int repeatDelay: 250
-    property int repeatRate: 35
+    property int repeatDelay: limits.repeatDelay.initial
+    property int repeatRate: limits.repeatRate.initial
 
-    function clamped(value: real, low: real, high: real): real {
-        return Math.max(low, Math.min(high, value));
+    function clamped(key: string, value: var): real {
+        const limit = limits[key];
+        const number = Number(value);
+        return isNaN(number) ? limit.initial : Math.max(limit.from, Math.min(limit.to, number));
     }
 
     function set(key: string, value: var): void {
         if (key === "sensitivity")
-            sensitivity = Math.round(clamped(value, -1, 1) * 100) / 100;
-        else if (key === "repeatDelay")
-            repeatDelay = clamped(value, 150, 1000);
-        else if (key === "repeatRate")
-            repeatRate = clamped(value, 10, 60);
+            sensitivity = Math.round(clamped(key, value) * 100) / 100;
+        else if (key in limits)
+            root[key] = Math.round(clamped(key, value));
         else
             root[key] = value;
-        file.save({ sensitivity, acceleration, naturalScroll, repeatDelay, repeatRate });
-        apply();
+        applyTimer.restart();
+        saveTimer.restart();
     }
 
-    function apply(): void {
-        HyprWindows.setInput(sensitivity, acceleration, naturalScroll, repeatDelay, repeatRate);
+    // Tažení posuvníku posílá hodnoty rychle za sebou: Hyprlandu stačí ta poslední, na disk konečný stav
+    Timer {
+        id: applyTimer
+
+        interval: 50
+        onTriggered: HyprWindows.setInput(root.sensitivity, root.acceleration, root.naturalScroll, root.repeatDelay, root.repeatRate)
+    }
+
+    Timer {
+        id: saveTimer
+
+        interval: 300
+        onTriggered: file.save({ sensitivity: root.sensitivity, acceleration: root.acceleration, naturalScroll: root.naturalScroll, repeatDelay: root.repeatDelay, repeatRate: root.repeatRate })
     }
 
     JsonFile {
@@ -42,11 +61,11 @@ Singleton {
         path: `${ShellEnv.deskDir}/input-settings.json`
         onValueLoaded: {
             const saved = file.value ?? {};
-            root.sensitivity = root.clamped(Number(saved.sensitivity ?? 0), -1, 1);
+            root.sensitivity = root.clamped("sensitivity", saved.sensitivity);
             root.acceleration = saved.acceleration ?? true;
             root.naturalScroll = saved.naturalScroll ?? false;
-            root.repeatDelay = root.clamped(Number(saved.repeatDelay ?? 250), 150, 1000);
-            root.repeatRate = root.clamped(Number(saved.repeatRate ?? 35), 10, 60);
+            root.repeatDelay = root.clamped("repeatDelay", saved.repeatDelay);
+            root.repeatRate = root.clamped("repeatRate", saved.repeatRate);
         }
     }
 }

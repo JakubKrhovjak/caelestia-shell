@@ -45,7 +45,7 @@ Item {
     BlobGroup {
         id: blobGroup
 
-        color: root.open ? Colours.palette.m3surfaceContainerHighest : (ShellEnv.isDesk ? Colours.palette : Colours.tPalette).m3surfaceContainer
+        color: root.open ? Colours.palette.m3surfaceContainerHighest : ShellEnv.surfacePalette.m3surfaceContainer
 
         Behavior on color {
             CAnim {}

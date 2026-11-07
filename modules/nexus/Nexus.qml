@@ -16,7 +16,7 @@ Item {
 
         onClose: root.close()
     }
-    property color blobColour: (ShellEnv.isDesk ? Colours.palette : Colours.tPalette).m3surfaceContainerLow
+    property color blobColour: ShellEnv.surfacePalette.m3surfaceContainerLow
 
     signal close
 

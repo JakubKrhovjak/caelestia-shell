@@ -56,8 +56,8 @@ PageBase {
             first: true
             label: "Repeat delay"
             subtext: "Milliseconds before a held key starts repeating"
-            from: 150
-            to: 1000
+            from: DeskInput.limits.repeatDelay.from
+            to: DeskInput.limits.repeatDelay.to
             stepSize: 50
             value: DeskInput.repeatDelay
             onMoved: value => DeskInput.set("repeatDelay", value)
@@ -67,8 +67,8 @@ PageBase {
             last: true
             label: "Repeat rate"
             subtext: "Characters per second while a key is held"
-            from: 10
-            to: 60
+            from: DeskInput.limits.repeatRate.from
+            to: DeskInput.limits.repeatRate.to
             value: DeskInput.repeatRate
             onMoved: value => DeskInput.set("repeatRate", value)
         }

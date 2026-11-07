@@ -12,6 +12,11 @@ Singleton {
     readonly property string mainMonitor: Quickshell.env("DESK_MAIN_MONITOR") ?? ""
     readonly property string minimizedWorkspace: Quickshell.env("DESK_MINIMIZED_WORKSPACE") || "special:minimized"
     readonly property string shellClass: Quickshell.env("DESK_SHELL_CLASS") || "org.quickshell"
+    readonly property string toolboxClass: Quickshell.env("DESK_TOOLBOX_CLASS") || "jetbrains-toolbox"
+
+    // Plochy oken Nastavení a Files: v desk neprůhledné, průhlednost dává Hyprland vlastností okna (desk/window-behavior.lua);
+    // v Caelestii průhledná paleta jako dřív
+    readonly property var surfacePalette: isDesk ? Colours.palette : Colours.tPalette
 
     function isMinimized(toplevel: var): bool {
         return toplevel?.workspace?.name === minimizedWorkspace;

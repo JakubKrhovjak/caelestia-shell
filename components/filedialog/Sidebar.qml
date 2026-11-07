@@ -54,7 +54,7 @@ StyledRect {
     implicitWidth: Sizes.sidebarWidth
     implicitHeight: inner.implicitHeight + Tokens.padding.medium * 2
 
-    color: Colours.palette.m3surfaceContainer
+    color: ShellEnv.surfacePalette.m3surfaceContainer
 
     FileView {
         path: `${Paths.config}/file-bookmarks.json`

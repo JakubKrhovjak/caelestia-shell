@@ -246,7 +246,7 @@ ListView {
                 id: itemBg
 
                 anchors.fill: parent
-                color: (ShellEnv.isDesk ? Colours.palette : Colours.tPalette).m3surfaceContainer
+                color: ShellEnv.surfacePalette.m3surfaceContainer
                 radius: item.lerpRadius(Tokens.rounding.extraSmall, Tokens.rounding.large)
                 topLeftRadius: item.lerpRadius(item.topRadius, Tokens.rounding.large)
                 topRightRadius: item.lerpRadius(item.topRadius, Tokens.rounding.large)

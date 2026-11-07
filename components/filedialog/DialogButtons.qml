@@ -12,7 +12,7 @@ StyledRect {
 
     implicitHeight: inner.implicitHeight + Tokens.padding.medium * 2
 
-    color: Colours.palette.m3surfaceContainer
+    color: ShellEnv.surfacePalette.m3surfaceContainer
 
     RowLayout {
         id: inner
@@ -31,7 +31,7 @@ StyledRect {
             Layout.fillHeight: true
             Layout.rightMargin: Tokens.spacing.medium
 
-            color: Colours.palette.m3surfaceContainerHigh
+            color: ShellEnv.surfacePalette.m3surfaceContainerHigh
             radius: Tokens.rounding.medium
 
             StyledText {
@@ -47,7 +47,7 @@ StyledRect {
         }
 
         StyledRect {
-            color: Colours.palette.m3surfaceContainerHigh
+            color: ShellEnv.surfacePalette.m3surfaceContainerHigh
             radius: Tokens.rounding.medium
 
             implicitWidth: cancelText.implicitWidth + Tokens.padding.medium * 2
@@ -70,7 +70,7 @@ StyledRect {
         }
 
         StyledRect {
-            color: Colours.palette.m3surfaceContainerHigh
+            color: ShellEnv.surfacePalette.m3surfaceContainerHigh
             radius: Tokens.rounding.medium
 
             implicitWidth: cancelText.implicitWidth + Tokens.padding.medium * 2

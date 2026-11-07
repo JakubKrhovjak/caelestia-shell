@@ -34,7 +34,7 @@ Item {
             Layout.fillWidth: true
             implicitHeight: width
             radius: Tokens.rounding.largeIncreased
-            color: (ShellEnv.isDesk ? Colours.palette : Colours.tPalette).m3surfaceContainer
+            color: ShellEnv.surfacePalette.m3surfaceContainer
 
             Loader {
                 anchors.centerIn: parent

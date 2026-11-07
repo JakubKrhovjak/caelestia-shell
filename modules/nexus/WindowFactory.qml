@@ -41,7 +41,7 @@ Singleton {
 
         // Minimalizované okno existuje jen v desk
         if (ShellEnv.isMinimized(toplevel))
-            HyprWindows.run([HyprWindows.restoreTo(toplevel.address, Hypr.focusedWorkspace?.id ?? 1)]);
+            HyprWindows.restoreToWorkspace(toplevel.address, Hypr.focusedWorkspace?.id ?? 1);
         else
             HyprWindows.focusAndRaise(toplevel.address);
     }
@@ -66,7 +66,7 @@ Singleton {
 
             Component.onCompleted: showPage(startPage)
 
-            color: (ShellEnv.isDesk ? Colours.palette : Colours.tPalette).m3surface
+            color: ShellEnv.surfacePalette.m3surface
             surfaceFormat.opaque: false
 
             onVisibleChanged: {

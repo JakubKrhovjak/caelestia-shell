@@ -43,7 +43,7 @@ ColumnLayout {
                     font: Tokens.font.icon.medium
                     type: IconButton.Tonal
                     isRound: true
-                    inactiveColour: (ShellEnv.isDesk ? Colours.palette : Colours.tPalette).m3surfaceContainerHigh
+                    inactiveColour: ShellEnv.surfacePalette.m3surfaceContainerHigh
                     inactiveOnColour: Colours.palette.m3onSurfaceVariant
                     onClicked: root.nState.closeSubPage()
                 }

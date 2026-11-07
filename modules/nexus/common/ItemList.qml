@@ -20,7 +20,7 @@ ConnectedRect {
 
     Layout.fillWidth: true
     implicitHeight: (showList && list.count > 0 ? list.contentHeight : placeholder.implicitHeight + Tokens.padding.extraLarge * 2) + extraHeight
-    color: (ShellEnv.isDesk ? Colours.palette : Colours.tPalette).m3surfaceContainer
+    color: ShellEnv.surfacePalette.m3surfaceContainer
     clip: true
 
     Behavior on implicitHeight {

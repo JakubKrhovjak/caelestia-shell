@@ -228,7 +228,7 @@ Scope {
 
                 Rectangle {
                     anchors.fill: parent
-                    color: "#000000"
+                    color: Colours.palette.m3scrim
                     opacity: 0.5
                 }
 
@@ -284,7 +284,7 @@ Scope {
                                 id: preview
 
                                 anchors.centerIn: parent
-                                captureSource: Hypr.toplevels.values.find(t => `0x${t.address.replace(/^0x/, "")}` === card.modelData.address)?.wayland ?? null // qmllint disable unresolved-type
+                                captureSource: Hypr.toplevels.values.find(t => HyprWindows.address(t.address) === HyprWindows.address(card.modelData.address))?.wayland ?? null // qmllint disable unresolved-type
                                 live: card.absD < 1.5
                                 constraintSize.width: card.width
                                 constraintSize.height: card.height
@@ -292,7 +292,7 @@ Scope {
 
                             Rectangle {
                                 anchors.fill: parent
-                                color: "#000000"
+                                color: Colours.palette.m3scrim
                                 opacity: Math.min(0.5, card.absD * 0.35)
                             }
                         }
@@ -334,7 +334,7 @@ Scope {
                         anchors.verticalCenter: parent.verticalCenter
                         width: Math.min(implicitWidth, content.width * 0.5)
                         text: root.selectedWindow?.title ?? ""
-                        color: "#ffffff"
+                        color: Colours.palette.m3onSurface
                         elide: Text.ElideRight
                         font: Tokens.font.body.large
                     }

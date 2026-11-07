@@ -38,6 +38,19 @@ Singleton {
         return `restore_window("${address(value)}", ${workspace})`;
     }
 
+    // Dokončení animace minimalizace a obnovení z panelu (desk/minimize.lua, panel/MinimizeAnimation.qml)
+    function finishMinimize(value: string): void {
+        run([`finish_minimize("${address(value)}")`]);
+    }
+
+    function finishRestore(value: string): void {
+        run([`finish_restore("${address(value)}")`]);
+    }
+
+    function restoreToWorkspace(value: string, workspace: int): void {
+        run([restoreTo(value, workspace)]);
+    }
+
     function restoreMinimized(value: string, workspace: int): void {
         run([`restore_minimized("${address(value)}", ${workspace})`]);
     }

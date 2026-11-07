@@ -124,7 +124,7 @@ FocusScope {
 
     StyledRect {
         anchors.fill: parent
-        color: Colours.palette.m3surfaceContainer
+        color: ShellEnv.surfacePalette.m3surfaceContainer
 
         layer.enabled: true
         layer.effect: Mask {
