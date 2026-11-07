@@ -14,6 +14,9 @@ Singleton {
     readonly property int minIconSize: 16
     readonly property int maxIconSize: 48
     readonly property int defaultIconSize: 28
+    // Krytí v procentech. Dolní mez musí být nad ignore_alpha pravidla panelu v hyprland.lua, jinak zmizí rozmazání
+    readonly property int minPanelOpacity: 25
+    readonly property int maxPanelOpacity: 100
 
     // Pod touhle výškou se v panelu nevejdou dva řádky hodin
     readonly property int twoLineClockHeight: 42
@@ -21,6 +24,7 @@ Singleton {
     property int panelHeight: 46
     property int requestedIconSize: defaultIconSize
     property int requestedTrayIconSize: 22
+    property int panelOpacity: 50
     // Výška, se kterou počítají okna; po změně je přepočítá panel
     property int fittedPanelHeight: panelHeight
 
@@ -56,13 +60,18 @@ Singleton {
         saveTimer.restart();
     }
 
+    function setPanelOpacity(value: real): void {
+        panelOpacity = clamped(value, minPanelOpacity, maxPanelOpacity);
+        saveTimer.restart();
+    }
+
     // Posuvník mění hodnotu plynule, na disk stačí konečný stav
     Timer {
         id: saveTimer
 
         interval: 300
         onTriggered: {
-            store.save({ panelHeight: root.panelHeight, iconSize: root.requestedIconSize, trayIconSize: root.requestedTrayIconSize });
+            store.save({ panelHeight: root.panelHeight, iconSize: root.requestedIconSize, trayIconSize: root.requestedTrayIconSize, panelOpacity: root.panelOpacity });
             if (root.panelHeight !== root.fittedPanelHeight) {
                 const oldHeight = root.fittedPanelHeight;
                 root.fittedPanelHeight = root.panelHeight;
@@ -85,6 +94,7 @@ Singleton {
             root.requestedIconSize = root.clamped(value?.iconSize ?? root.requestedIconSize, root.minIconSize, root.maxIconSize);
             // Starší soubor velikost pro tray nemá: dřív byla o 6 px menší než ostatní ikony
             root.requestedTrayIconSize = root.clamped(value?.trayIconSize ?? root.requestedIconSize - 6, root.minIconSize, root.maxIconSize);
+            root.panelOpacity = root.clamped(value?.panelOpacity ?? root.panelOpacity, root.minPanelOpacity, root.maxPanelOpacity);
         }
     }
 }
