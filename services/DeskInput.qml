@@ -4,7 +4,7 @@ import QtQuick
 import Quickshell
 import qs.components
 
-// Klávesnice a myš pro stránku Keyboard & mouse v prostředí desk. Ukládá se do desk/input-settings.json, který čte
+// Klávesnice a myš pro stránku Keyboard & mouse v prostředí desk. Ukládá se do input-settings.json ve stavové složce, který čte
 // i desk/config.lua při startu (tam jsou stejné meze, viz load_input); změna se hned použije přes HyprWindows.
 // Caelestia tuhle službu nepoužívá.
 Singleton {
@@ -58,7 +58,7 @@ Singleton {
     JsonFile {
         id: file
 
-        path: `${ShellEnv.deskDir}/input-settings.json`
+        path: `${ShellEnv.stateDir}/input-settings.json`
         onValueLoaded: {
             const saved = file.value ?? {};
             root.sensitivity = root.clamped("sensitivity", saved.sensitivity);

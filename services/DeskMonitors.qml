@@ -5,7 +5,7 @@ import Quickshell
 import Quickshell.Io
 
 // Rozložení monitorů pro stránku Displays v prostředí desk. Návrh se upravuje v paměti, použití ho zapíše
-// do desk/monitor-settings.lua a bez potvrzení se samo vrátí, aby špatný režim nenechal černou obrazovku.
+// do monitor-settings.lua ve stavové složce a bez potvrzení se samo vrátí, aby špatný režim nenechal černou obrazovku.
 Singleton {
     id: root
 
@@ -187,7 +187,7 @@ Singleton {
     FileView {
         id: settings
 
-        path: `${ShellEnv.deskDir}/monitor-settings.lua`
+        path: `${ShellEnv.stateDir}/monitor-settings.lua`
         printErrors: false
         onSaved: {
             Quickshell.execDetached(["hyprctl", "reload"]);

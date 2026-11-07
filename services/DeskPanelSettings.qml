@@ -5,7 +5,7 @@ import Quickshell
 import qs.components
 
 // Velikost panelu prostředí desk a jeho ikon, krytí panelu, lišt oken a Ghostty. Nastavuje ji stránka v Nexusu, Caelestia ji nepoužívá.
-// Patří do verzovaného desk/ vedle autostart.json: je to nastavení, ne běhový stav.
+// Osobní nastavení ve stavové složce (mimo git); výchozí hodnoty jsou v desk/defaults/state.
 Singleton {
     id: root
 
@@ -144,7 +144,7 @@ Singleton {
     JsonFile {
         id: store
 
-        path: `${ShellEnv.deskDir}/panel-settings.json`
+        path: `${ShellEnv.stateDir}/panel-settings.json`
         // Panel má naběhnout rovnou ve své výšce: skok z výchozí hodnoty by Hyprland odnesl na oknech
         blockLoading: true
         // Soubor zapisuje jen tahle služba; sledování by při tažení posuvníku vracelo starší hodnotu

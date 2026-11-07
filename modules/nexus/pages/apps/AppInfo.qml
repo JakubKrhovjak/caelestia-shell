@@ -122,7 +122,7 @@ PageBase {
         JsonFile {
             id: autostartFile
 
-            path: root.hasAutostart ? `${ShellEnv.deskDir}/autostart.json` : ""
+            path: root.hasAutostart ? `${ShellEnv.stateDir}/autostart.json` : ""
             onValueLoaded: root.autostart = value
         }
 
