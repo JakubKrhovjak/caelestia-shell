@@ -143,7 +143,10 @@ Singleton {
         restartOnKeep = mainName !== ShellEnv.mainMonitor;
         secondsLeft = confirmSeconds;
         pending = true;
+        // Obojí hned: zápis se stejným obsahem jako minule se neuloží a neohlásí, řetězení přes onSaved zálohy
+        // by pak nové rozložení nezapsalo vůbec (druhé Apply po Keep nedělalo nic)
         backup.setText(previousText);
+        settings.setText(serialized());
     }
 
     function dropBackup(): void {
@@ -182,7 +185,6 @@ Singleton {
         path: `${ShellEnv.stateDir}/monitor-settings.previous.lua`
         preload: false
         printErrors: false
-        onSaved: settings.setText(root.serialized())
     }
 
     FileView {
@@ -190,6 +192,9 @@ Singleton {
 
         path: `${ShellEnv.stateDir}/monitor-settings.lua`
         printErrors: false
+        // Změna zvenku (start.sh po nepotvrzeném rozložení, ruční oprava) jinak nechá v paměti starý obsah pro návrat
+        watchChanges: true
+        onFileChanged: reload()
         onSaved: {
             Quickshell.execDetached(["hyprctl", "reload"]);
             refresh.restart();
