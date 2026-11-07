@@ -74,6 +74,13 @@ ColumnLayout {
                     label: "Ghostty"
                     item: DeskPanelSettings.ghostty
                 }
+
+                // Okna shellu: Nastavení a Files (desk/window-behavior.lua)
+                DeskLinkedOpacityRow {
+                    icon: "select_window"
+                    label: "Settings & Files"
+                    item: DeskPanelSettings.windows
+                }
             }
         }
     }

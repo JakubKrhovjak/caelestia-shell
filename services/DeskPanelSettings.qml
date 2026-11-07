@@ -57,6 +57,12 @@ Singleton {
         separate: 100
         onValueChanged: ghosttyTimer.restart()
     }
+    // Okna shellu (Nastavení a Files): krytí nastavuje Hyprland vlastností okna (desk/window-behavior.lua), jako lišty spojené s panelem
+    readonly property LinkedOpacity windows: LinkedOpacity {
+        linked: true
+        separate: 100
+        onValueChanged: windowTimer.restart()
+    }
     // Výška, se kterou počítají okna; po změně je přepočítá panel
     property int fittedPanelHeight: panelHeight
 
@@ -105,6 +111,13 @@ Singleton {
         onTriggered: Quickshell.execDetached(["hyprctl", "eval", `window_bar_opacity(${root.windowBars.value})`])
     }
 
+    Timer {
+        id: windowTimer
+
+        interval: 50
+        onTriggered: Quickshell.execDetached(["hyprctl", "eval", `window_opacity(${root.windows.value})`])
+    }
+
     // Ghostty kvůli změně znovu načítá celou konfiguraci, proto delší prodleva
     Timer {
         id: ghosttyTimer
@@ -119,7 +132,7 @@ Singleton {
 
         interval: 300
         onTriggered: {
-            store.save({ panelHeight: root.panelHeight, iconSize: root.requestedIconSize, trayIconSize: root.requestedTrayIconSize, panelOpacity: root.panelOpacity, windowBarsLinked: root.windowBars.linked, windowBarOpacity: root.windowBars.value, ghosttyLinked: root.ghostty.linked, ghosttyOpacity: root.ghostty.value });
+            store.save({ panelHeight: root.panelHeight, iconSize: root.requestedIconSize, trayIconSize: root.requestedTrayIconSize, panelOpacity: root.panelOpacity, windowBarsLinked: root.windowBars.linked, windowBarOpacity: root.windowBars.value, ghosttyLinked: root.ghostty.linked, ghosttyOpacity: root.ghostty.value, windowsLinked: root.windows.linked, windowOpacity: root.windows.value });
             if (root.panelHeight !== root.fittedPanelHeight) {
                 const oldHeight = root.fittedPanelHeight;
                 root.fittedPanelHeight = root.panelHeight;
@@ -147,6 +160,8 @@ Singleton {
             root.windowBars.linked = value?.windowBarsLinked ?? true;
             root.ghostty.separate = root.clamped(value?.ghosttyOpacity ?? root.ghostty.separate, root.minPanelOpacity, root.maxPanelOpacity);
             root.ghostty.linked = value?.ghosttyLinked ?? false;
+            root.windows.separate = root.clamped(value?.windowOpacity ?? root.windows.separate, root.minPanelOpacity, root.maxPanelOpacity);
+            root.windows.linked = value?.windowsLinked ?? true;
         }
     }
 }
