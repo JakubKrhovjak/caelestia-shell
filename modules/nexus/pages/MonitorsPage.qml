@@ -44,18 +44,6 @@ PageBase {
         spacing: Tokens.spacing.extraSmall / 2
 
         Variants {
-            id: outputVariants
-
-            model: DeskMonitors.outputs
-
-            MenuItem {
-                required property var modelData
-
-                text: modelData.name
-            }
-        }
-
-        Variants {
             id: resolutionVariants
 
             model: root.resolutions
@@ -171,9 +159,21 @@ PageBase {
 
         // Hned pod rozložením: změny se projeví až po použití, tlačítko musí být vidět
         RowButton {
+            id: swapButton
+
             Layout.topMargin: Tokens.spacing.medium
-            visible: !DeskMonitors.pending
+            visible: !DeskMonitors.pending && arrangement.shown.length === 2
             first: true
+            icon: "swap_horiz"
+            text: "Swap left and right"
+            subtext: "Then apply and keep, like after dragging"
+            onClicked: DeskMonitors.swapSides()
+        }
+
+        RowButton {
+            Layout.topMargin: swapButton.visible ? 0 : Tokens.spacing.medium
+            visible: !DeskMonitors.pending
+            first: !swapButton.visible
             disabled: !DeskMonitors.dirty
             icon: "check"
             text: DeskMonitors.dirty ? "Apply changes" : "No changes to apply"
@@ -208,15 +208,13 @@ PageBase {
             onClicked: DeskMonitors.revert()
         }
 
-        SelectRow {
+        // Nastavení níže patří monitoru vybranému kliknutím v rozložení nahoře
+        InfoRow {
             Layout.topMargin: Tokens.spacing.medium
             first: true
-            label: "Display"
-            subtext: root.output?.description ?? ""
-            menuItems: outputVariants.instances
-            active: menuItems.find(item => item.text === DeskMonitors.selectedName) ?? null
-            fallbackText: DeskMonitors.selectedName
-            onSelected: item => DeskMonitors.selectedName = item.text
+            label: "Settings for"
+            subtext: `${root.output?.description ?? ""}. Click a display above to change it`
+            value: DeskMonitors.selectedName
         }
 
         ToggleRow {

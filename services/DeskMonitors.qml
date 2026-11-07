@@ -100,6 +100,18 @@ Singleton {
         normalize();
     }
 
+    // Dva monitory vedle sebe prohodí zleva doprava; jen návrh, použije se tlačítkem Apply jako tažení
+    function swapSides(): void {
+        // Array.from: seznam z QML vlastnosti nemá všechny metody pole (viz snapped)
+        const shown = Array.from(outputs.filter(output => !output.disabled)).sort((a, b) => a.x - b.x);
+        if (shown.length !== 2)
+            return;
+        const [left, right] = shown;
+        update(right.name, { x: 0, y: left.y });
+        update(left.name, { x: logicalSize(right).w, y: right.y });
+        normalize();
+    }
+
     // Po změně velikosti by monitor mohl překrývat souseda nebo od něj odskočit
     function reshape(name: string, patch: var): void {
         update(name, patch);
