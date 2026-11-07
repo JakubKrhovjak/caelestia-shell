@@ -4,7 +4,7 @@ import QtQuick
 import Quickshell
 import qs.components
 
-// Velikost panelu prostředí desk a jeho ikon. Nastavuje ji stránka v Nexusu, Caelestia ji nepoužívá.
+// Velikost panelu prostředí desk a jeho ikon, krytí panelu, lišt oken a Ghostty. Nastavuje ji stránka v Nexusu, Caelestia ji nepoužívá.
 // Patří do verzovaného desk/ vedle autostart.json: je to nastavení, ne běhový stav.
 Singleton {
     id: root

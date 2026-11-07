@@ -49,7 +49,7 @@ PageBase {
         entry.enabled = minutes > 0;
         if (minutes > 0)
             entry.timeout = minutes * 60;
-        // Výchozí suspendThenHibernate bez swapu na disku nefunguje, logind ho hlásí jako nedostupný
+        // Výchozí suspendThenHibernate bez swapu na disku nefunguje. Pole je příkaz ke spuštění, proto celé systemctl suspend
         if (minutes > 0 && kind === "sleep")
             entry.idleAction = ["systemctl", "suspend"];
     }
