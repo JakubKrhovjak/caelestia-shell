@@ -67,7 +67,7 @@ Singleton {
 
             Component.onCompleted: showPage(startPage)
 
-            color: Colours.tPalette.m3surface
+            color: (ShellEnv.isDesk ? Colours.palette : Colours.tPalette).m3surface
             surfaceFormat.opaque: false
 
             onVisibleChanged: {

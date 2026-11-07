@@ -41,7 +41,7 @@ PageBase {
             showList: true
             placeholderIcon: "music_off"
             placeholderText: Tr.tr("No apps playing audio")
-            color: list.count === 0 ? Colours.tPalette.m3surfaceContainer : "transparent"
+            color: list.count === 0 ? (ShellEnv.isDesk ? Colours.palette : Colours.tPalette).m3surfaceContainer : "transparent"
             list.spacing: Tokens.spacing.extraSmall / 2
 
             model: ScriptModel {

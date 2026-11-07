@@ -36,7 +36,7 @@ PageBase {
                 return Math.min(Math.round(cWidth * 0.4), cWidth / screen.width * screen.height);
             }
 
-            color: Colours.tPalette.m3surfaceContainer
+            color: (ShellEnv.isDesk ? Colours.palette : Colours.tPalette).m3surfaceContainer
             radius: Tokens.rounding.large
 
             Loader {

@@ -159,7 +159,7 @@ PageBase {
             visible: active
 
             sourceComponent: StyledRect {
-                color: Colours.tPalette.m3surfaceContainer
+                color: (ShellEnv.isDesk ? Colours.palette : Colours.tPalette).m3surfaceContainer
                 radius: Tokens.rounding.extraLarge
                 implicitHeight: noWallsLayout.implicitHeight + Tokens.padding.extraExtraLarge * 2
 

@@ -23,7 +23,7 @@ ColumnLayout {
         placeholderText: Tr.tr("Search settings")
         font: Tokens.font.body.large
 
-        bg.color: Colours.tPalette.m3surfaceContainerLowest
+        bg.color: (ShellEnv.isDesk ? Colours.palette : Colours.tPalette).m3surfaceContainerLowest
         bg.border.color: Colours.palette.m3outlineVariant
         searchIcon.fontStyle: Tokens.font.icon.medium
         searchIcon.anchors.leftMargin: Tokens.padding.largeIncreased
