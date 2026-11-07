@@ -119,6 +119,14 @@ QtObject {
             }
         },
         Component {
+            // Keyboard & mouse, na stejné pozici jako v PageRegistry
+            StackPage {
+                Component {
+                    InputPage {}
+                }
+            }
+        },
+        Component {
             PlaceholderComp {}
         },
         Component {

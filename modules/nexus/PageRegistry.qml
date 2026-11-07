@@ -68,6 +68,13 @@ QtObject {
             category: ShellEnv.isDesk ? "system" : "hidden"
         },
         {
+            id: "input",
+            label: "Keyboard & mouse",
+            icon: "mouse",
+            description: "Pointer speed, scrolling, key repeat",
+            category: ShellEnv.isDesk ? "system" : "hidden"
+        },
+        {
             label: Tr.tr("Updates"),
             icon: "update",
             description: Tr.tr("System updates"),
@@ -101,6 +108,7 @@ QtObject {
             category: "shell"
         },
         {
+            id: "language",
             label: Tr.tr("Language & region"),
             icon: "globe",
             description: Tr.tr("UI language, weather location, display units"),
