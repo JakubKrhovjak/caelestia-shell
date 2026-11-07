@@ -25,6 +25,38 @@ Singleton {
     property int requestedIconSize: defaultIconSize
     property int requestedTrayIconSize: 22
     property int panelOpacity: 50
+    // Co může přebírat krytí panelu. Posuvník položku odpojí, tlačítko ji zase spojí.
+    component LinkedOpacity: QtObject {
+        property bool linked
+        property int separate
+        readonly property int value: linked ? root.panelOpacity : separate
+
+        function set(percent: real): void {
+            separate = root.clamped(percent, root.minPanelOpacity, root.maxPanelOpacity);
+            linked = false;
+            saveTimer.restart();
+        }
+
+        function setLinked(newLinked: bool): void {
+            // Po odpojení zůstane položka tam, kde byla, ať neskočí
+            separate = value;
+            linked = newLinked;
+            saveTimer.restart();
+        }
+    }
+
+    // Titulkové lišty oken kreslí Hyprland
+    readonly property LinkedOpacity windowBars: LinkedOpacity {
+        linked: true
+        separate: 50
+        onValueChanged: windowBarTimer.restart()
+    }
+    // Terminál má zůstat čitelný, proto je ve výchozím stavu neprůhledný a odpojený
+    readonly property LinkedOpacity ghostty: LinkedOpacity {
+        linked: false
+        separate: 100
+        onValueChanged: ghosttyTimer.restart()
+    }
     // Výška, se kterou počítají okna; po změně je přepočítá panel
     property int fittedPanelHeight: panelHeight
 
@@ -65,13 +97,29 @@ Singleton {
         saveTimer.restart();
     }
 
+    // Tažení posuvníku posílá hodnoty rychle za sebou, Hyprlandu stačí ta poslední
+    Timer {
+        id: windowBarTimer
+
+        interval: 50
+        onTriggered: Quickshell.execDetached(["hyprctl", "eval", `window_bar_opacity(${root.windowBars.value})`])
+    }
+
+    // Ghostty kvůli změně znovu načítá celou konfiguraci, proto delší prodleva
+    Timer {
+        id: ghosttyTimer
+
+        interval: 300
+        onTriggered: Quickshell.execDetached([`${ShellEnv.deskDir}/ghostty-opacity.sh`, `${root.ghostty.value}`])
+    }
+
     // Posuvník mění hodnotu plynule, na disk stačí konečný stav
     Timer {
         id: saveTimer
 
         interval: 300
         onTriggered: {
-            store.save({ panelHeight: root.panelHeight, iconSize: root.requestedIconSize, trayIconSize: root.requestedTrayIconSize, panelOpacity: root.panelOpacity });
+            store.save({ panelHeight: root.panelHeight, iconSize: root.requestedIconSize, trayIconSize: root.requestedTrayIconSize, panelOpacity: root.panelOpacity, windowBarsLinked: root.windowBars.linked, windowBarOpacity: root.windowBars.value, ghosttyLinked: root.ghostty.linked, ghosttyOpacity: root.ghostty.value });
             if (root.panelHeight !== root.fittedPanelHeight) {
                 const oldHeight = root.fittedPanelHeight;
                 root.fittedPanelHeight = root.panelHeight;
@@ -95,6 +143,10 @@ Singleton {
             // Starší soubor velikost pro tray nemá: dřív byla o 6 px menší než ostatní ikony
             root.requestedTrayIconSize = root.clamped(value?.trayIconSize ?? root.requestedIconSize - 6, root.minIconSize, root.maxIconSize);
             root.panelOpacity = root.clamped(value?.panelOpacity ?? root.panelOpacity, root.minPanelOpacity, root.maxPanelOpacity);
+            root.windowBars.separate = root.clamped(value?.windowBarOpacity ?? root.panelOpacity, root.minPanelOpacity, root.maxPanelOpacity);
+            root.windowBars.linked = value?.windowBarsLinked ?? true;
+            root.ghostty.separate = root.clamped(value?.ghosttyOpacity ?? root.ghostty.separate, root.minPanelOpacity, root.maxPanelOpacity);
+            root.ghostty.linked = value?.ghosttyLinked ?? false;
         }
     }
 }
