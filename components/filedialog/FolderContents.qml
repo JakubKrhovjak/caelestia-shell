@@ -5,6 +5,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Io
 import Caelestia.Config
 import Caelestia.I18n
 import Caelestia.Models
@@ -16,7 +17,8 @@ import qs.components.images
 import qs.services
 import qs.utils
 
-Item {
+// FocusScope: aktivace panelu (Pane.activate) předá fokus seznamu, jinak by jeho klávesy nedostaly žádný stisk
+FocusScope {
     id: root
 
     required property var dialog
@@ -53,6 +55,64 @@ Item {
             .filter(src => src !== dest && !dest.startsWith(src + "/") && src.slice(0, src.lastIndexOf("/")) !== dest);
         if (srcs.length > 0)
             Quickshell.execDetached(move ? ["mv", "-n", "--", ...srcs, dest] : ["cp", "-rn", "--", ...srcs, dest]);
+    }
+
+    // Přejmenovávaný soubor a jméno, které se po vzniku v seznamu vybere (nová složka, přejmenování)
+    property string editingPath: ""
+    property string pendingSelect: ""
+    property bool renamePending: false
+
+    // Mazání jen do koše, aby nic nezmizelo natrvalo; chyby hlásí oznámení, příkazy běží mimo shell
+    function trash(file: FileSystemEntry): void {
+        Quickshell.execDetached(["sh", "-c", 'gio trash -- "$1" || notify-send "Files" "Could not move to trash: $1"', "sh", file.path]);
+    }
+
+    function rename(file: FileSystemEntry, name: string): void {
+        editingPath = "";
+        view.forceActiveFocus();
+        if (!name || name === file.name || name.includes("/"))
+            return;
+        const dest = file.path.slice(0, file.path.lastIndexOf("/") + 1) + name;
+        Quickshell.execDetached(["sh", "-c", 'if [ -e "$2" ]; then notify-send "Files" "Already exists: $2"; else mv -- "$1" "$2" || notify-send "Files" "Could not rename: $1"; fi', "sh", file.path, dest]);
+        pendingSelect = name;
+    }
+
+    function newFolder(): void {
+        newFolderProc.command = ["sh", "-c", 'n="New Folder"; i=2; while [ -e "$1/$n" ]; do n="New Folder $i"; i=$((i + 1)); done; mkdir -- "$1/$n" && printf %s "$n"', "sh", currentPath];
+        newFolderProc.running = true;
+    }
+
+    // Vybere položku podle jména; delegát, který vznikne až později, si to zkontroluje sám
+    function selectPending(entry: var): bool {
+        if (!pendingSelect || entry.modelData.name !== pendingSelect)
+            return false;
+        view.currentIndex = entry.index;
+        if (renamePending)
+            editingPath = entry.modelData.path;
+        pendingSelect = "";
+        renamePending = false;
+        return true;
+    }
+
+    onPendingSelectChanged: {
+        for (let i = 0; i < view.count; i++) {
+            const entry = view.itemAtIndex(i);
+            if (entry && selectPending(entry))
+                return;
+        }
+    }
+
+    Process {
+        id: newFolderProc
+
+        stdout: StdioCollector {
+            onStreamFinished: {
+                if (text) {
+                    root.renamePending = true;
+                    root.pendingSelect = text;
+                }
+            }
+        }
     }
 
     function open(file: FileSystemEntry): void {
@@ -188,7 +248,18 @@ Item {
         Keys.onEnterPressed: if (currentItem) root.open((currentItem as FileEntry).modelData)
         Keys.onPressed: event => {
             const ctrl = event.modifiers & Qt.ControlModifier;
-            if (ctrl && event.key === Qt.Key_T) {
+            const file = currentItem ? (currentItem as FileEntry).modelData : null;
+            // Jako na Macu: Cmd + Backspace do koše, Cmd + Shift + N nová složka; F2 přejmenuje
+            if (file && (event.key === Qt.Key_Delete || (ctrl && event.key === Qt.Key_Backspace))) {
+                root.trash(file);
+                event.accepted = true;
+            } else if (file && event.key === Qt.Key_F2) {
+                root.editingPath = file.path;
+                event.accepted = true;
+            } else if (ctrl && (event.modifiers & Qt.ShiftModifier) && event.key === Qt.Key_N) {
+                root.newFolder();
+                event.accepted = true;
+            } else if (ctrl && event.key === Qt.Key_T) {
                 root.dialog.newTab();
                 event.accepted = true;
             } else if (ctrl && event.key === Qt.Key_W) {
@@ -269,6 +340,9 @@ Item {
         required property int index
         required property FileSystemEntry modelData
         readonly property bool current: ListView.isCurrentItem
+        readonly property bool editing: root.editingPath === modelData.path
+
+        Component.onCompleted: root.selectPending(item)
 
         width: ListView.view.width - Tokens.padding.small
         implicitHeight: row.implicitHeight + Tokens.padding.small * 2
@@ -365,11 +439,47 @@ Item {
             }
 
             StyledText {
+                visible: !item.editing
                 Layout.fillWidth: true
                 text: item.modelData.name
                 elide: Text.ElideMiddle
                 color: item.current ? Colours.palette.m3onSecondaryContainer : Colours.palette.m3onSurface
                 font: Tokens.font.body.small
+            }
+
+            // Přejmenování přímo v řádku: Enter potvrdí, Escape nebo kliknutí jinam zruší
+            TextInput {
+                id: nameInput
+
+                visible: item.editing
+                Layout.fillWidth: true
+                clip: true
+                selectByMouse: true
+                color: Colours.palette.m3onSurface
+                selectionColor: Colours.palette.m3primary
+                selectedTextColor: Colours.palette.m3onPrimary
+                font: Tokens.font.body.small
+
+                onVisibleChanged: {
+                    if (!visible)
+                        return;
+                    const name = item.modelData.name;
+                    const dot = name.lastIndexOf(".");
+                    text = name;
+                    forceActiveFocus();
+                    // Jako ve správcích souborů: označí se jméno bez přípony
+                    select(0, item.modelData.isDir || dot <= 0 ? name.length : dot);
+                }
+                onActiveFocusChanged: {
+                    if (!activeFocus && item.editing)
+                        root.editingPath = "";
+                }
+                Keys.onReturnPressed: root.rename(item.modelData, text)
+                Keys.onEnterPressed: root.rename(item.modelData, text)
+                Keys.onEscapePressed: {
+                    root.editingPath = "";
+                    view.forceActiveFocus();
+                }
             }
 
             StyledText {
