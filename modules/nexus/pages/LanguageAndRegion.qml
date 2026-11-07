@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Io
 import Caelestia.Config
 import Caelestia.I18n
 import qs.components
@@ -189,12 +190,74 @@ PageBase {
 
         SelectRow {
             first: true
-            last: true
             label: Tr.tr("Clock format")
             subtext: Tr.tr("How times are shown across the shell")
             menuItems: root.clockItems
             active: root.clockItems.find(i => i.value === GlobalConfig.services.clockFormat)
             onSelected: item => GlobalConfig.services.clockFormat = item.value
+        }
+
+        // Pásmo a NTP mění systém přes timedatectl; polkit si řekne o heslo
+        TextFieldRow {
+            label: Tr.tr("Time zone")
+            subtext: Tr.tr("Region/City, for example Europe/Prague")
+            value: root.timezone
+            errorText: root.timezoneError
+            onEditingFinished: value => root.setTimezone(value.trim())
+        }
+
+        ToggleRow {
+            last: true
+            text: Tr.tr("Set time automatically")
+            subtext: Tr.tr("Synchronise the clock over the internet (NTP)")
+            checked: root.ntp
+            onToggled: root.run(["timedatectl", "set-ntp", checked ? "true" : "false"])
+        }
+    }
+
+    property string timezone
+    property bool ntp: true
+    property string timezoneError
+    property var timezones: []
+
+    function setTimezone(zone: string): void {
+        if (zone === timezone)
+            return;
+        if (!timezones.includes(zone)) {
+            timezoneError = Tr.tr("Unknown time zone");
+            return;
+        }
+        timezoneError = "";
+        run(["timedatectl", "set-timezone", zone]);
+    }
+
+    function run(command: var): void {
+        changer.command = command;
+        changer.running = true;
+    }
+
+    // Procesy jsou ve vlastnostech: PageBase bere jediný obsahový prvek (contentChild), další potomek by ho nahradil.
+    // Po každé změně (i zrušené výzvě k heslu) se stav znovu načte, aby stránka ukazovala skutečnost.
+    readonly property Process changer: Process {
+        onExited: root.reader.running = true
+    }
+
+    readonly property Process reader: Process {
+        running: true
+        command: ["timedatectl", "show", "-p", "Timezone", "-p", "NTP"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                root.timezone = (text.match(/^Timezone=(.*)$/m) ?? [])[1] ?? "";
+                root.ntp = /^NTP=yes$/m.test(text);
+            }
+        }
+    }
+
+    readonly property Process zoneList: Process {
+        running: true
+        command: ["timedatectl", "list-timezones"]
+        stdout: StdioCollector {
+            onStreamFinished: root.timezones = text.split("\n").filter(zone => zone)
         }
     }
 }
