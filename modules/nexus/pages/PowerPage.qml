@@ -51,12 +51,12 @@ PageBase {
             entry.timeout = minutes * 60;
         // Výchozí suspendThenHibernate bez swapu na disku nefunguje, logind ho hlásí jako nedostupný
         if (minutes > 0 && kind === "sleep")
-            entry.idleAction = ["suspend"];
+            entry.idleAction = ["systemctl", "suspend"];
     }
 
     function newTimeout(kind: var): var {
         if (kind === "sleep")
-            return { timeout: 1800, idleAction: ["suspend"] };
+            return { timeout: 1800, idleAction: ["systemctl", "suspend"] };
         if (kind === "dpms off")
             return { timeout: 600, idleAction: "dpms off", returnAction: "dpms on" };
         return { timeout: 300, idleAction: kind };
